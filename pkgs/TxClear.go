@@ -80,10 +80,12 @@ func GetClearTx(txid string, height int) *Tx {
 				pval, _ := txijson.(map[string]interface{})["value"].(json.Number).Float64()
 				txi.Address = txijson.(map[string]interface{})["address"].(string)
 				txi.Value = service.FloatToUint(pval)
+				txi.Currency = "BTC"
 			} else {
 				prevout, _ := GetTxOutRPC(txi.Hash, txi.Index)
 				txi.Address = prevout.Addr
 				txi.Value = prevout.Value
+				txi.Currency = "BTC"
 			}
 
 			total_tx_in += uint64(txi.Value)

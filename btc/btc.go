@@ -51,3 +51,6 @@ func main() {
 	btc := configs.BTC
 	fmt.Println(btc)
 }
+
+//TODO
+//使用封装结构，添加LTC代币信息
