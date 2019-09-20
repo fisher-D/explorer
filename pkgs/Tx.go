@@ -74,10 +74,16 @@ func SaveTxRPC(Tx *Tx) string {
 	// fmt.Println(time.Now(), "Processing Transactions ||TxID", Txid)
 	err := service.Insert("GGBTC", "transaction", Tx)
 	if err != nil {
-		return "Failed"
+		return "Failed1"
 	}
-	GetAddressRPC(Tx.TxID)
-	GetUnSpentTransaction(Tx.TxID)
+	err = GetAddressRPC(Tx.TxID)
+	if err != nil {
+		return "Failed2"
+	}
+	err = GetUnSpentTransaction(Tx.TxID)
+	if err != nil {
+		return "Faild3"
+	}
 	//
 	return "Success"
 }
@@ -198,8 +204,8 @@ func CatchUpTx() string {
 	if err != nil {
 		fmt.Println("Error happened")
 	}
-	fmt.Println(res)
-	return "Success"
+	//fmt.Println(res)
+	return res
 }
 
 func GetStartTime() (int, int) {
@@ -239,7 +245,11 @@ func GetAndSaveTx(txarr *mgo.Collection) (string, error) {
 				// 	fmt.Println("Unable to Get Transaction,Tx Hash:", Txs[i])
 				// 	return "", err
 				// }
-				SaveTxRPC(rawTx)
+				result := SaveTxRPC(rawTx)
+				fmt.Println(result)
+				//if result != "Success" {
+				//	return "Faild", fmt.Errorf("Error Happened")
+				//}
 
 			}
 

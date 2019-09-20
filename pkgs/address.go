@@ -7,6 +7,13 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type Address struct {
+	Result    CurrectAddress
+	Detail    AddrDetail
+	FirstSeen uint64
+	LastSeen  uint64
+}
+
 type CurrectAddress struct {
 	Address   string `json:"address"`
 	Txdetails []struct {
@@ -17,12 +24,7 @@ type CurrectAddress struct {
 		currecny string `json:"coinName"`
 	} `json:"txdetails"`
 }
-type Address struct {
-	Result    CurrectAddress
-	Detail    AddrDetail
-	FirstSeen uint64
-	LastSeen  uint64
-}
+
 type AddrDetail struct {
 	TotalRecCount  int
 	TotalSentCount int
@@ -30,6 +32,7 @@ type AddrDetail struct {
 	TotalSent      uint64
 	Balance        uint64
 }
+
 type Txins struct {
 	TxID    string
 	VoutNum int
@@ -42,8 +45,8 @@ type Voutinfo struct {
 	Spent   bool
 }
 
-func GetAddressRPC(TxID string) {
-	VinMesses, VoutMess, Time := QueryTest(TxID)
+func GetAddressRPC(TxID string) error {
+	VinMesses, VoutMess, Time := QueryTx(TxID)
 	Vout := ProcessVoutMess(VoutMess)
 	Vin := ProcessVinMess(VinMesses)
 	VoutAddress := SaveAddressData(Vout)
@@ -51,7 +54,8 @@ func GetAddressRPC(TxID string) {
 	for _, k := range VinAddress {
 		VoutAddress = append(VoutAddress, k)
 	}
-	CompleteAddress(VoutAddress, Time)
+	err := CompleteAddress(VoutAddress, Time)
+	return err
 }
 
 func SaveAddressData(Address []service.Address) []string {
@@ -63,17 +67,17 @@ func SaveAddressData(Address []service.Address) []string {
 	//info := Address[0]
 	//k := Addr.TxDetails
 	for _, info := range Address {
-		for _, l := range info.TxDetails {
-			Addr := info.Address
-			Addres = append(Addres, Addr)
-			selector := bson.M{"address": info.Address}
-			pretx := bson.M{"txdetails": l}
-			data := bson.M{"$addToSet": pretx}
-			_, err := session.Upsert(selector, data)
-			if err != nil {
-				fmt.Println(err)
-			}
+		//for _, l := range info.TxDetails {
+		Addr := info.Address
+		Addres = append(Addres, Addr)
+		selector := bson.M{"address": info.Address}
+		pretx := bson.M{"txdetails": info.TxDetails[0]}
+		data := bson.M{"$addToSet": pretx}
+		_, err := session.Upsert(selector, data)
+		if err != nil {
+			fmt.Println(err)
 		}
+		//	}
 		//	}
 		// Addr := k.Address
 		// Addres = append(Addres, Addr)
@@ -88,7 +92,7 @@ func SaveAddressData(Address []service.Address) []string {
 	return Addres
 }
 
-func CompleteAddress(address []string, Time uint64) {
+func CompleteAddress(address []string, Time uint64) error {
 	service.GetMongo(mongourl)
 	session := service.GlobalS.DB("GGBTC").C("addresrelatetx")
 	AddressSession := service.GlobalS.DB("GGBTC").C("address")
@@ -98,9 +102,8 @@ func CompleteAddress(address []string, Time uint64) {
 		var Final Address
 		session.Find(query).All(&q)
 		for _, m := range q {
-
-			Final.Result.Txdetails = m.Txdetails
 			Final.Result.Address = m.Address
+			Final.Result.Txdetails = m.Txdetails
 
 			if len(Final.Result.Txdetails) > 1 {
 				Final.LastSeen = Time
@@ -133,6 +136,7 @@ func CompleteAddress(address []string, Time uint64) {
 			AddressSession.Insert(Final)
 		}
 	}
+	return nil
 }
 
 func ProcessVinMess(VinMesses [][]Voutinfo) []service.Address {
@@ -170,7 +174,7 @@ func ProcessData(VinMess Voutinfo) service.Address {
 }
 
 //----------------------------------------------------------------
-func QueryTest(txid string) ([][]Voutinfo, []Voutinfo, uint64) {
+func QueryTx(txid string) ([][]Voutinfo, []Voutinfo, uint64) {
 
 	service.GetMongo(mongourl)
 	toll := service.GlobalS.DB("GGBTC").C("transaction")
@@ -206,24 +210,20 @@ func GetVinFromTx(txid string, voutNum uint32, spent bool) []Voutinfo {
 	toll := service.GlobalS.DB("GGBTC").C("transaction")
 	var q []Tx
 	toll.Find(bson.M{"txid": txid}).All(&q)
+	//fmt.Println("111111111111111111111111111111111111111111111111111111111")
+	//fmt.Println(q)
+	//fmt.Println("111111111111111111111111111111111111111111111111111111111")
 	//var Txs []AutoTx
 	var Vout []*TxOut
 
 	var Voutdel Voutinfo
 	var Voutdels []Voutinfo
-	//data, _ := json.Marshal(q)
-	//json.Unmarshal(data, &Txs)
-	//data1, _ := json.Marshal(Txs)
-	//fmt.Println(string(data1))
 	for _, k := range q {
 		Vout = k.TxOuts
 	}
 	for _, k := range Vout {
 		if k.Index == voutNum {
 			Voutdel.Address = k.Addr
-			// for _, k := range m {
-			// 	Voutdel.Address = k
-			// }
 			Voutdel.Value = k.Value
 			Voutdel.Index = int(k.Index)
 			Voutdel.Spent = spent

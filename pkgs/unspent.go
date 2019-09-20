@@ -17,7 +17,12 @@ type Unspent struct {
 	Index    uint32
 }
 
-func GetUnSpentTransaction(Txid string) {
+// func CountTx() {
+// 	session := service.GlobalS.DB("GGBTC").C("txbyheight")
+// 	unspetsess := service.GlobalS.DB("GGBTC").C("unspent")
+
+// }
+func GetUnSpentTransaction(Txid string) error {
 	session := service.GlobalS.DB("GGBTC").C("transaction")
 	var q Tx
 	session.Find(bson.M{"txid": Txid}).One(&q)
@@ -30,18 +35,15 @@ func GetUnSpentTransaction(Txid string) {
 	UTXOT := drawVoutOut(Vout, Txid)
 	//fmt.Println(UTXOI)
 	RemoveVin(UTXOI)
+
 	InsertVout(UTXOT)
+
+	return nil
 	//fmt.Println("========================")
 	//fmt.Println(UTXOT)
 
 }
 
-// func mongoUpdateTest() {
-// 	session := service.GlobalS.DB("GGBTC").C("Test")
-// 	var q Unspent
-// 	target := bson.M{"height": "asd"}
-// 	session.Update()
-// }
 func drawVinOut(Vin []*TxIn) *Unspent {
 	UTXO := new(Unspent)
 	if Vin == nil {
@@ -79,8 +81,9 @@ func InsertVout(UTXOT *Unspent) {
 
 		session := service.GlobalS.DB("GGBTC").C("unspent")
 		session.Insert(UTXOT)
-		fmt.Println("Vout Update Success")
+		//return nil
 	} else {
+		//return fmt.Errorf("Coinbase Tx does not need to be instert")
 		fmt.Println("Coinbase Tx does not need to be instert")
 	}
 }
@@ -88,8 +91,9 @@ func RemoveVin(UTXOI *Unspent) {
 	if UTXOI != nil {
 		session := service.GlobalS.DB("GGBTC").C("unspent")
 		session.Remove(UTXOI)
-		fmt.Println("Vin Remove Success")
+		//return nil
 	} else {
+		//return fmt.Errorf("Coinbase Tx does not need to be instert")
 		fmt.Println("Coinbase Tx does not need to be instert")
 	}
 }
