@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/GGBTC/explorer/service"
 
@@ -65,14 +64,14 @@ func BuildTxsArry(txarr *mgo.Collection, height int) ([]string, uint32, error) {
 }
 
 func SaveTxRPC(Tx *Tx) string {
-	var Txid string
-	//fmt.Sprint(Tx)
-	if Tx != nil {
-		Txid = Tx.TxID
-	} else {
-		Tx = nil
-	}
-	fmt.Println(time.Now(), "Processing Transactions ||TxID", Txid)
+	// var Txid string
+	// //fmt.Sprint(Tx)
+	// if Tx != nil {
+	// 	Txid = Tx.TxID
+	// } else {
+	// 	Tx = nil
+	// }
+	// fmt.Println(time.Now(), "Processing Transactions ||TxID", Txid)
 	err := service.Insert("GGBTC", "transaction", Tx)
 	if err != nil {
 		return "Failed"
@@ -96,7 +95,7 @@ func QueryTxByHash(hash string) {
 func TxQueryOptions(query interface{}) {
 
 	var session *mgo.Session
-	session, err := mgo.Dial("localhost:27017")
+	session, err := mgo.Dial("192.168.3.16:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -128,7 +127,7 @@ func TxQueryOptions(query interface{}) {
 
 func CheckBlockHeightInMongo() (int, int) {
 	var session *mgo.Session
-	session, err := mgo.Dial("localhost:27017")
+	session, err := mgo.Dial("192.168.3.16:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -208,11 +207,11 @@ func GetStartTime() (int, int) {
 	temp := service.GlobalS.DB("GGBTC").C("status")
 	tar := service.GlobalS.DB("GGBTC").C("txbyheight")
 	var test Temps
-	var tt []Temps
+	var tt Temps
 	//test.Height = 32
 	temp.Insert(test)
-	temp.Find(nil).All(&tt)
-	time := int(tt[0].Height)
+	temp.Find(nil).One(&tt)
+	time := int(tt.Height)
 	endtime, _ := tar.Count()
 	return time, endtime
 }
@@ -221,15 +220,15 @@ func GetStartTime() (int, int) {
 func GetAndSaveTx(txarr *mgo.Collection) (string, error) {
 	startNum, endNum := GetStartTime()
 	var tem Temps
-	fmt.Println(startNum, endNum)
+	//fmt.Println(startNum, endNum)
 	for i := startNum + 1; i <= endNum; i++ {
 		Txs, Height, err := BuildTxsArry(txarr, i)
 		if err != nil {
-			fmt.Println("Unable to Get Transactions for Block At height", Height)
+			//	fmt.Println("Unable to Get Transactions for Block At height", Height)
 			return "", err
 		}
 		countTx := len(Txs)
-		fmt.Println("Blockheight :", Height, "||Has:", countTx, "Number of Txs")
+		//fmt.Println("Blockheight :", Height, "||Has:", countTx, "Number of Txs")
 		if countTx != 0 {
 			tem.Height = Height
 			service.GlobalS.DB("GGBTC").C("status").Update(nil, tem)

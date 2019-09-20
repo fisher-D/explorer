@@ -18,7 +18,7 @@ func main() {
 func KeepRunning() {
 	res := pkgs.CatchUpTx()
 	if res == "Success" {
-		time.Sleep(time.Duration(60) * time.Second)
+		time.Sleep(time.Duration(10) * time.Second)
 	}
 	//return true
 }

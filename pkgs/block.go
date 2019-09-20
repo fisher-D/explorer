@@ -11,17 +11,19 @@ import (
 )
 
 const (
-	URL       = "EXAMPLE"
+	URL       = "http://admin:admin@47.244.98.227:13143"
 	GenesisTx = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
-	mongourl  = "localhost:27017"
+	mongourl  = "192.168.3.16:27017"
 )
 
 func GetAndStoreBlock(height int) {
 	service.GetMongo(mongourl)
+	session := service.GlobalS.DB("GGBTC").C("blocks")
 	hash := GetBlockHashRPC(height)
 	block := GetClearBlock(hash)
-	fmt.Println("Processing Block||Height :", height, "||Hash :", hash)
+	//fmt.Println("Processing Block||Height :", height, "||Hash :", hash)
 	result := SaveBlockRPC(block)
+	DrawOutTxs(session, height)
 	fmt.Println(time.Now(), result)
 
 }
@@ -96,7 +98,7 @@ func SaveBlockRPC(block ClearBlock) string {
 func BlockQueryOptions(query interface{}) {
 
 	var session *mgo.Session
-	session, err := mgo.Dial("localhost:27017")
+	session, err := mgo.Dial("192.168.3.16:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -129,7 +131,7 @@ func QueryBlockByHash(hash string) {
 //CatchUpBlocks Main Functions
 func CatchUpBlocks() string {
 	var session *mgo.Session
-	session, err := mgo.Dial("localhost:27017")
+	session, err := mgo.Dial("192.168.3.16:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -143,7 +145,7 @@ func CatchUpBlocks() string {
 		panic(err)
 	}
 
-	fmt.Println(countNum)
+	//fmt.Println(countNum)
 	fmt.Println("Start from Block Height", countNum)
 	//Test Purpose
 	for i := countNum; i <= BlockCount; i++ {

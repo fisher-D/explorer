@@ -11,7 +11,7 @@ import (
 const (
 	URL       = "EXAMPLE"
 	GenesisTx = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
-	mongourl  = "localhost:27017"
+	mongourl  = "192.168.3.16:27017"
 )
 
 type BTCconfig struct {
@@ -19,13 +19,35 @@ type BTCconfig struct {
 	GenesisTx string
 	mongourl  string
 }
+type Test1 struct {
+	Name  string
+	Input Input
+}
+type Input struct {
+	Age    int
+	Gender string
+}
 
 func main() {
 	// service.GetMongo(mongourl)
 	// Txid := "0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9"
 	// GetUnSpentTransaction(Txid)
+	c := new(Input)
+	c.Age = 123
+	c.Gender = "boy"
+	d := new(Input)
+	d.Age = 1123
+	d.Gender = "boy1"
+	selector := bson.M{"Name": "jack"}
+	pretx := bson.M{"Input": d}
+	data := bson.M{"$addToSet": pretx}
 	service.GetMongo(mongourl)
-	ClearTx()
+	session := service.GlobalS.DB("test").C("asd")
+	a := new(Test1)
+	a.Name = "jack"
+
+	a.Input = *c
+	session.Upsert(selector, data)
 }
 
 func GetUnSpentTransaction(Txid string) {

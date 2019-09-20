@@ -58,11 +58,11 @@ func SaveAddressData(Address []service.Address) []string {
 	service.GetMongo(mongourl)
 	session := service.GlobalS.DB("GGBTC").C("addresrelatetx")
 	var Addres []string
-	for _, k := range Address {
+	for v, k := range Address {
 		Addr := k.Address
 		Addres = append(Addres, Addr)
 		selector := bson.M{"address": k.Address}
-		pretx := bson.M{"txdetails": k.TxDetails[0]}
+		pretx := bson.M{"txdetails": k.TxDetails[v]}
 		data := bson.M{"$addToSet": pretx}
 		_, err := session.Upsert(selector, data)
 		if err != nil {
@@ -81,36 +81,40 @@ func CompleteAddress(address []string, Time uint64) {
 		var q []CurrectAddress
 		var Final Address
 		session.Find(query).All(&q)
-		Final.Result = q[0]
-		if len(Final.Result.Txdetails) > 1 {
-			Final.LastSeen = Time
-		} else {
-			Final.FirstSeen = Time
-			Final.LastSeen = Time
-		}
-		var totalreceive, totalsent int
-		balance, sent, receive := 0, 0, 0
-		for _, k := range Final.Result.Txdetails {
-			if k.Spent != true {
-				totalreceive += k.Value
-				receive++
+		for _, m := range q {
+
+			Final.Result.Txdetails = m.Txdetails
+
+			if len(Final.Result.Txdetails) > 1 {
+				Final.LastSeen = Time
 			} else {
-				totalsent += k.Value
-				sent++
+				Final.FirstSeen = Time
+				Final.LastSeen = Time
 			}
+			var totalreceive, totalsent int
+			balance, sent, receive := 0, 0, 0
+			for _, k := range Final.Result.Txdetails {
+				if k.Spent != true {
+					totalreceive += k.Value
+					receive++
+				} else {
+					totalsent += k.Value
+					sent++
+				}
+			}
+			prebalance := totalreceive - totalsent
+			if prebalance < 0 {
+				balance = 0
+			} else {
+				balance = prebalance
+			}
+			Final.Detail.Balance = uint64(balance)
+			Final.Detail.TotalRecCount = receive
+			Final.Detail.TotalReceived = uint64(totalreceive)
+			Final.Detail.TotalSent = uint64(totalsent)
+			Final.Detail.TotalSentCount = sent
+			AddressSession.Insert(Final)
 		}
-		prebalance := totalreceive - totalsent
-		if prebalance < 0 {
-			balance = 0
-		} else {
-			balance = prebalance
-		}
-		Final.Detail.Balance = uint64(balance)
-		Final.Detail.TotalRecCount = receive
-		Final.Detail.TotalReceived = uint64(totalreceive)
-		Final.Detail.TotalSent = uint64(totalsent)
-		Final.Detail.TotalSentCount = sent
-		AddressSession.Insert(Final)
 	}
 }
 
