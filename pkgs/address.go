@@ -58,16 +58,31 @@ func SaveAddressData(Address []service.Address) []string {
 	service.GetMongo(mongourl)
 	session := service.GlobalS.DB("GGBTC").C("addresrelatetx")
 	var Addres []string
-	for v, k := range Address {
-		Addr := k.Address
+	//fmt.Println(Address)
+	info := Address[0]
+	//k := Addr.TxDetails
+	//for _, k := range Address {
+	for _, l := range info.TxDetails {
+		Addr := info.Address
 		Addres = append(Addres, Addr)
-		selector := bson.M{"address": k.Address}
-		pretx := bson.M{"txdetails": k.TxDetails[v]}
+		selector := bson.M{"address": info.Address}
+		pretx := bson.M{"txdetails": l}
 		data := bson.M{"$addToSet": pretx}
 		_, err := session.Upsert(selector, data)
 		if err != nil {
 			fmt.Println(err)
 		}
+
+		//	}
+		// Addr := k.Address
+		// Addres = append(Addres, Addr)
+		// selector := bson.M{"address": k.Address}
+		// pretx := bson.M{"txdetails": k.TxDetails[v]}
+		// data := bson.M{"$addToSet": pretx}
+		// _, err := session.Upsert(selector, data)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
 	}
 	return Addres
 }
@@ -84,6 +99,7 @@ func CompleteAddress(address []string, Time uint64) {
 		for _, m := range q {
 
 			Final.Result.Txdetails = m.Txdetails
+			Final.Result.Address = m.Address
 
 			if len(Final.Result.Txdetails) > 1 {
 				Final.LastSeen = Time
