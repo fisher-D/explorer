@@ -13,7 +13,7 @@ import (
 const (
 	URL       = "Example"
 	GenesisTx = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
-	mongourl  = "192.168.3.16:27017"
+	mongourl  = "localhost:27017"
 )
 
 func GetAndStoreBlock(height int) {
@@ -98,7 +98,7 @@ func SaveBlockRPC(block ClearBlock) string {
 func BlockQueryOptions(query interface{}) {
 
 	var session *mgo.Session
-	session, err := mgo.Dial("192.168.3.16:27017")
+	session, err := mgo.Dial("localhost:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -131,7 +131,7 @@ func QueryBlockByHash(hash string) {
 //CatchUpBlocks Main Functions
 func CatchUpBlocks() string {
 	var session *mgo.Session
-	session, err := mgo.Dial("192.168.3.16:27017")
+	session, err := mgo.Dial("localhost:27017")
 	if err != nil {
 		panic(err)
 	}

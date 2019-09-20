@@ -95,7 +95,7 @@ func QueryTxByHash(hash string) {
 func TxQueryOptions(query interface{}) {
 
 	var session *mgo.Session
-	session, err := mgo.Dial("192.168.3.16:27017")
+	session, err := mgo.Dial("localhost:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -127,7 +127,7 @@ func TxQueryOptions(query interface{}) {
 
 func CheckBlockHeightInMongo() (int, int) {
 	var session *mgo.Session
-	session, err := mgo.Dial("192.168.3.16:27017")
+	session, err := mgo.Dial("localhost:27017")
 	if err != nil {
 		panic(err)
 	}

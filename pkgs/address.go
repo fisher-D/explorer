@@ -59,20 +59,21 @@ func SaveAddressData(Address []service.Address) []string {
 	session := service.GlobalS.DB("GGBTC").C("addresrelatetx")
 	var Addres []string
 	//fmt.Println(Address)
-	info := Address[0]
-	//k := Addr.TxDetails
 	//for _, k := range Address {
-	for _, l := range info.TxDetails {
-		Addr := info.Address
-		Addres = append(Addres, Addr)
-		selector := bson.M{"address": info.Address}
-		pretx := bson.M{"txdetails": l}
-		data := bson.M{"$addToSet": pretx}
-		_, err := session.Upsert(selector, data)
-		if err != nil {
-			fmt.Println(err)
+	//info := Address[0]
+	//k := Addr.TxDetails
+	for _, info := range Address {
+		for _, l := range info.TxDetails {
+			Addr := info.Address
+			Addres = append(Addres, Addr)
+			selector := bson.M{"address": info.Address}
+			pretx := bson.M{"txdetails": l}
+			data := bson.M{"$addToSet": pretx}
+			_, err := session.Upsert(selector, data)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
-
 		//	}
 		// Addr := k.Address
 		// Addres = append(Addres, Addr)

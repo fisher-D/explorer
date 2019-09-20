@@ -120,7 +120,7 @@ type Detail struct {
 }
 
 const (
-	URL = "192.168.3.16:27017" //连接mongoDB启动服务的端口号 你得先启动mongoDB服务
+	URL = "localhost:27017" //连接mongoDB启动服务的端口号 你得先启动mongoDB服务
 )
 
 var client *mgo.Collection
