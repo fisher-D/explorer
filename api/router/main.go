@@ -15,6 +15,8 @@ import (
 // 根据id获取block
 //Auto Handle Hash or Height
 func GetBlockInfoByKeyValue(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	params := mux.Vars(req)
 	Id := params["id"]
 	coinName := params["coinName"]
@@ -41,6 +43,8 @@ func btcJudgeBlockKey(id string) (key string) {
 
 // 根据id获取transcation
 func GetTranscationById(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	params := mux.Vars(req)
 	Id := params["id"]
 	coinName := params["coinName"]
@@ -57,6 +61,8 @@ func GetTranscationById(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetAccountInfoByAddress(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	params := mux.Vars(req)
 	address := params["id"]
 	coinName := params["coinName"]
@@ -70,6 +76,8 @@ func GetAccountInfoByAddress(w http.ResponseWriter, req *http.Request) {
 	}
 }
 func GetLastBlock(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	//params := mux.Vars(req)
 	mongo := getdata.Mongo{}
 	mongo.GetConnection("GGBTC", "blocks")
@@ -77,6 +85,8 @@ func GetLastBlock(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 func GetAddressUnSpent(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	params := mux.Vars(req)
 	mongo := getdata.Mongo{}
 	address := params["id"]
@@ -86,6 +96,8 @@ func GetAddressUnSpent(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetRecentTranscation(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	//fmt.Println("hahahahahaha")
 	params := mux.Vars(req)
 	coinName := params["coinName"]
@@ -100,6 +112,8 @@ func GetRecentTranscation(w http.ResponseWriter, req *http.Request) {
 	}
 }
 func GetRecentBlocks(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	//	fmt.Println("")
 	params := mux.Vars(req)
 	coinName := params["coinName"]
