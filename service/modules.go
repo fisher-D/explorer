@@ -1,16 +1,5 @@
 package service
 
-type Address struct {
-	Address        string
-	FirstSeen      string
-	LastSeen       string
-	TxDetails      []TxDetail
-	TotalRecCount  int
-	TotalSentCount int
-	TotalReceived  uint64
-	TotalSent      uint64
-	Balance        uint64
-}
 type TxDetail struct {
 	TxID  string
 	Value uint64

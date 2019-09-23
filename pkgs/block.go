@@ -11,14 +11,14 @@ import (
 )
 
 const (
-	URL       = "Example"
-	GenesisTx = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
-	mongourl  = "localhost:27017"
+	URL       = service.BTCURL
+	GenesisTx = service.BTCGenesisTx
+	mongourl  = service.Mongourl
 )
 
 func GetAndStoreBlock(height int) {
 	service.GetMongo(mongourl)
-	session := service.GlobalS.DB("GGBTC").C("blocks")
+	session := service.GlobalS.DB("LTC").C("blocks")
 	hash := GetBlockHashRPC(height)
 	block := GetClearBlock(hash)
 	//fmt.Println("Processing Block||Height :", height, "||Hash :", hash)
@@ -71,11 +71,11 @@ func GetAndStoreBlock(height int) {
 // 	blockjson.Time = uint32(Time) //uint32
 // 	Tx := tar["tx"].([]interface{})
 // 	var str []string
-// 	txs, err := json.Marshal(Tx)
+// 	Txs, err := json.Marshal(Tx)
 // 	if err != nil {
 // 		fmt.Println("ERROR")
 // 	}
-// 	json.Unmarshal(txs, &str)
+// 	json.Unmarshal(Txs, &str)
 // 	blockjson.Tx = str //[]string
 // 	Version, _ := tar["version"].(json.Number).Int64()
 // 	blockjson.Version = uint32(Version)               //uint32
@@ -88,7 +88,7 @@ func GetAndStoreBlock(height int) {
 
 func SaveBlockRPC(block ClearBlock) string {
 
-	err := service.Insert("GGBTC", "blocks", block)
+	err := service.Insert("LTC", "blocks", block)
 	if err != nil {
 		fmt.Println("ERROR")
 	}
@@ -104,7 +104,7 @@ func BlockQueryOptions(query interface{}) {
 	}
 	defer session.Close()
 
-	boll := session.DB("GGBTC").C("blocks")
+	boll := session.DB("LTC").C("blocks")
 	var q []bson.M
 	boll.Find(query).All(&q)
 	for a, info := range q {
@@ -139,7 +139,7 @@ func CatchUpBlocks() string {
 
 	BlockCount := GetBlockCountRPC()
 	fmt.Println(BlockCount)
-	coll := session.DB("GGBTC").C("blocks")
+	coll := session.DB("LTC").C("blocks")
 	countNum, err := coll.Count()
 	if err != nil {
 		panic(err)

@@ -13,7 +13,7 @@ import (
 )
 
 // 根据id获取block
-//Auto Handle Hash or Height
+//Auto Handle Hash or Height Done
 func GetBlockInfoByKeyValue(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
@@ -23,11 +23,15 @@ func GetBlockInfoByKeyValue(w http.ResponseWriter, req *http.Request) {
 	if coinName == "btc" {
 		key := btcJudgeBlockKey(Id)
 		mongo := getdata.Mongo{}
-		mongo.GetConnection("GGBTC", "blocks")
+		mongo.GetConnection("BTC", "blocks")
 		result := mongo.GetBlockInfoByKeyValue(key, Id)
 		json.NewEncoder(w).Encode(result)
-	} else if coinName == "Eth" {
-		fmt.Println("------------------------", coinName)
+	} else if coinName == "ltc" {
+		key := btcJudgeBlockKey(Id)
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "blocks")
+		result := mongo.GetBlockInfoByKeyValue(key, Id)
+		json.NewEncoder(w).Encode(result)
 	}
 }
 
@@ -41,7 +45,7 @@ func btcJudgeBlockKey(id string) (key string) {
 	}
 }
 
-// 根据id获取transcation
+// 根据id获取transcation Done
 func GetTranscationById(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
@@ -50,16 +54,22 @@ func GetTranscationById(w http.ResponseWriter, req *http.Request) {
 	coinName := params["coinName"]
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
-		mongo.GetConnection("GGBTC", "transaction")
+		mongo.GetConnection("BTC", "txs")
 		if len(Id) == 64 {
 			result := mongo.GetTransCationInfoByHash(Id)
 			json.NewEncoder(w).Encode(result)
 		}
-	} else if coinName == "Eth" {
-		fmt.Println("------------------------", coinName)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "txs")
+		if len(Id) == 64 {
+			result := mongo.GetTransCationInfoByHash(Id)
+			json.NewEncoder(w).Encode(result)
+		}
 	}
 }
 
+//Done
 func GetAccountInfoByAddress(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
@@ -68,33 +78,60 @@ func GetAccountInfoByAddress(w http.ResponseWriter, req *http.Request) {
 	coinName := params["coinName"]
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
-		mongo.GetConnection("GGBTC", "address")
+		mongo.GetConnection("BTC", "address")
 		result := mongo.GetAccountInfoByAddress(address)
 		json.NewEncoder(w).Encode(result)
-	} else if coinName == "eth" {
-		fmt.Println("-----------------------------", coinName)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "address")
+		result := mongo.GetAccountInfoByAddress(address)
+		json.NewEncoder(w).Encode(result)
 	}
 }
+
+//Done
 func GetLastBlock(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	//params := mux.Vars(req)
-	mongo := getdata.Mongo{}
-	mongo.GetConnection("GGBTC", "blocks")
-	result := mongo.GetBlockHeight()
-	json.NewEncoder(w).Encode(result)
+	params := mux.Vars(req)
+	coinName := params["coinName"]
+	if coinName == "btc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("BTC", "blocks")
+		result := mongo.GetBlockHeight()
+		json.NewEncoder(w).Encode(result)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "blocks")
+		result := mongo.GetBlockHeight()
+		json.NewEncoder(w).Encode(result)
+	}
 }
+
+//Done
 func GetAddressUnSpent(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	params := mux.Vars(req)
-	mongo := getdata.Mongo{}
-	address := params["id"]
-	mongo.GetConnection("GGBTC", "unspent")
-	result := mongo.GetUnSpent(address)
-	json.NewEncoder(w).Encode(result)
+	//params := mux.Vars(req)
+	coinName := params["coinName"]
+	if coinName == "btc" {
+		mongo := getdata.Mongo{}
+		address := params["id"]
+		mongo.GetConnection("BTC", "utxo")
+		result := mongo.GetUnSpent(address)
+		json.NewEncoder(w).Encode(result)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		address := params["id"]
+		mongo.GetConnection("LTC", "utxo")
+		result := mongo.GetUnSpent(address)
+		json.NewEncoder(w).Encode(result)
+	}
 }
 
+//Done
 func GetRecentTranscation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
@@ -103,14 +140,18 @@ func GetRecentTranscation(w http.ResponseWriter, req *http.Request) {
 	coinName := params["coinName"]
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
-		mongo.GetConnection("GGBTC", "transaction")
+		mongo.GetConnection("BTC", "txs")
 		result := mongo.GetRecentTransCation()
-
 		json.NewEncoder(w).Encode(result)
-	} else if coinName == "eth" {
-		fmt.Println("-----------------------------", coinName)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "txs")
+		result := mongo.GetRecentTransCation()
+		json.NewEncoder(w).Encode(result)
 	}
 }
+
+//Done
 func GetRecentBlocks(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
@@ -119,23 +160,33 @@ func GetRecentBlocks(w http.ResponseWriter, req *http.Request) {
 	coinName := params["coinName"]
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
-		mongo.GetConnection("GGBTC", "blocks")
+		mongo.GetConnection("BTC", "blocks")
 		result := mongo.GetRecentBlock()
 
 		json.NewEncoder(w).Encode(result)
-	} else if coinName == "eth" {
-		fmt.Println("-----------------------------", coinName)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "blocks")
+		result := mongo.GetRecentBlock()
+		json.NewEncoder(w).Encode(result)
 	}
 }
 func main() {
 	//	Get handle function:
 	router := mux.NewRouter()
+	//Done
 	router.HandleFunc("/block/{coinName}/{id}", GetBlockInfoByKeyValue).Methods("GET")
+	//Done
 	router.HandleFunc("/tx/{coinName}/{id}", GetTranscationById).Methods("GET")
+	//Done
 	router.HandleFunc("/address/{coinName}/{id}", GetAccountInfoByAddress).Methods("GET")
+	//Done
 	router.HandleFunc("/unspent/{coinName}/{id}", GetAddressUnSpent).Methods("GET")
+	//Done
 	router.HandleFunc("/latestblock/{coinName}", GetLastBlock).Methods("GET")
+	//Done
 	router.HandleFunc("/recent/tx/{coinName}", GetRecentTranscation).Methods("GET")
+	//Done
 	router.HandleFunc("/recent/blocks/{coinName}", GetRecentBlocks).Methods("GET")
 	log.Fatal(http.ListenAndServe(":9899", router))
 	fmt.Println("1")

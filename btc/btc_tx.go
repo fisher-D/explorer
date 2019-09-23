@@ -1,37 +1,51 @@
-package pkgs
+package btc
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strings"
 
 	"github.com/GGBTC/explorer/service"
+	s "github.com/GGBTC/explorer/service"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
-var (
-	BTC  = "BTC"
-	Omni = "Omni"
-)
-
-func GetClearTx(txid string) *service.Tx {
-	//	res_tx, err := pkgs.GetTxRPC("1fcc63d2edbfe98b797234f5eed92b87ff2b155262d1ce07ee3db572cdc5d0c9", 595227)
-	//fmt.Println(res)
-	if txid == GenesisTx {
-		return nil
-		//return TxData{GenesisTx, []Vin{}, []VoutNew{{"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 5000000000}}}, nil
+func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
+	TxCollection := Database.C("txs")
+	var Time uint64
+	for _, k := range txidArray {
+		var q bson.M
+		res := TxCollection.Find(bson.M{"txid": k}).One(&q)
+		if res != nil {
+			result, _ := GetClearTx(k)
+			TxCollection.Insert(result)
+			if result == nil {
+				Time = 0
+			} else {
+				Time = result.BlockTime
+			}
+			Vin, Vout := BTCUnspent(k, Database)
+			GetAddress(Time, Vin, Vout, Database)
+		}
 	}
-	//fmt.Println(txid)
-	res_tx, err := CallBitcoinRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+
+	return true
+}
+
+func GetClearTx(txid string) (tx *service.Tx, err error) {
+	if txid == GenesisTx {
+		return
+	}
+	res_tx, err := CallBTCRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
-	tx := new(service.Tx)
-	//fmt.Println(res_tx)
+	tx = new(service.Tx)
 	txjson := res_tx["result"].(map[string]interface{})
-	//fmt.Println(txjson)
 	blocktime, _ := txjson["blocktime"].(json.Number).Int64()
 	tx.BlockTime = uint64(blocktime)
-	//tx.BlockHeight = uint(height)
 	tx.BlockHash = txjson["blockhash"].(string)
 
 	total_tx_out := uint64(0)
@@ -41,7 +55,6 @@ func GetClearTx(txid string) *service.Tx {
 		_, coinbase := txijson.(map[string]interface{})["coinbase"]
 		if !coinbase {
 			txi := new(service.Vin)
-			//Vinjsonprevout := new(PrevOut)
 			txi.Hash = txijson.(map[string]interface{})["txid"].(string)
 			tmpvout, _ := txijson.(map[string]interface{})["vout"].(json.Number).Int64()
 			txi.Index = uint32(tmpvout)
@@ -62,12 +75,7 @@ func GetClearTx(txid string) *service.Tx {
 			}
 
 			total_tx_in += uint64(txi.Value)
-
-			//txi.txi = txi
-
 			tx.Vin = append(tx.Vin, txi)
-
-			// TODO handle txi from this TX
 		} else {
 			txi := new(service.Vin)
 			txi.Coinbase = txijson.(map[string]interface{})["coinbase"].(string)
@@ -82,14 +90,12 @@ func GetClearTx(txid string) *service.Tx {
 		txo.Value = uint64(txoval * 1e8)
 		n, _ := txojson.(map[string]interface{})["n"].(json.Number).Float64()
 		txo.Index = uint32(n)
-		//txo.Addr = txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["addresses"].([]interface{})[0].(string)
 		if txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["type"].(string) != "nulldata" {
 			txodata, txoisinterface := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["addresses"].([]interface{})
 			if txoisinterface {
 				txo.Addr = txodata[0].(string)
 				txo.Currency = "BTC"
 			} else {
-				//TODO Currecny
 				txo.Addr = ""
 			}
 		} else {
@@ -101,18 +107,10 @@ func GetClearTx(txid string) *service.Tx {
 			}
 		}
 		tx.Vout = append(tx.Vout, txo)
-		//	txospent := new(TxoSpent)
-		//	txospent.Spent = false
-		//	txo.Spent = txospent
 		total_tx_out += uint64(txo.Value)
 	}
-
-	//tx.VoutNewCnt = uint32(len(tx.Vout))
-	//tx.VinCnt = uint32(len(tx.Vin))
 	tx.Txid = txid
-	//tx.TotalOut = uint64(total_tx_out)
-	//tx.TotalIn = uint64(total_tx_in)
-	return tx
+	return tx, nil
 }
 func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err error) {
 	// Hard coded genesis tx since it's not included in bitcoind RPC API
@@ -121,7 +119,7 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err err
 		//return TxData{GenesisTx, []Vin{}, []VoutNew{{"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 5000000000}}}, nil
 	}
 	// Get the TX from bitcoind RPC API
-	res_tx, err := CallBitcoinRPC(URL, "getrawtransaction", 1, []interface{}{tx_id, 1})
+	res_tx, err := CallBTCRPC(URL, "getrawtransaction", 1, []interface{}{tx_id, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
@@ -155,26 +153,41 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err err
 	return
 }
 
-// type TxoSpent struct {
-// 	Spent       bool   `json:"spent"`
-// 	BlockHeight uint32 `json:"block_height,omitempty"`
-// 	InputHash   string `json:"tx_hash,omitempty"`
-// 	InputIndex  uint32 `json:"in_index,omitempty"`
-// }
-// type Txsample struct {
-// 	Txid        string `json:"Txid"`
-// 	BlockHash   string `json:"block_hash"`
-// 	BlockHeight int    `json:"block_height"`
-// 	BlockTime   int    `json:"block_time"`
-// 	Vin         []struct {
-// 		Txid    string `json:"txid"`
-// 		Address string `json:"address"`
-// 		Value   int    `json:"value"`
-// 		N       int    `json:"n"`
-// 	} `json:"Vin"`
-// 	Vout []struct {
-// 		Address string `json:"address"`
-// 		Value   int    `json:"value"`
-// 		N       int    `json:"n"`
-// 	} `json:"Vout"`
-// }
+func GetVinValue(txid string, index uint64) (uint64, string) {
+	ress := GetTxRPC(txid)
+	//fmt.Println(ress)
+	var Txinfo s.TxOld
+	data, _ := json.Marshal(ress)
+	json.Unmarshal(data, &Txinfo)
+	var Value uint64
+	var Address string
+	for _, k := range Txinfo.Vout {
+		if k.N == index {
+			Value = k.Value
+			Address = k.ScriptPubKey.Addresses[0]
+			//fmt.Println(Address)
+			return Value, Address
+		}
+	}
+	return 0, ""
+}
+func GetTxRPC(txid string) map[string]interface{} {
+	//var Tx Tx
+	if txid == GenesisTx {
+		return nil
+	}
+	res_tx, err := CallBTCRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+	}
+	pre := res_tx["result"]
+	if pre == nil {
+		return nil
+	}
+	ress := res_tx["result"].(map[string]interface{})
+	if ress == nil {
+		fmt.Println("Intersting")
+		return nil
+	}
+	return ress
+}

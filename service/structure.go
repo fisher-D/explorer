@@ -73,7 +73,7 @@ func LoadConfig(path string) (conf *Config, err error) {
 
 // type Address struct {
 // 	Address string `json:"Address"`
-// 	Txs     []Txs  `json:"Txs"`
+// 	Txs     []Txs  `json:txs`
 // }
 // type Txs struct {
 // 	TxID  string  `json:"TxID"`

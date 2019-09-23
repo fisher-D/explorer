@@ -63,7 +63,7 @@ func BuildTxsArry(txarr *mgo.Collection, height int) ([]string, uint32, error) {
 
 }
 
-func SaveTxRPC(Tx *Tx) string {
+func SaveTxRPC(Tx *service.Tx) string {
 	// var Txid string
 	// //fmt.Sprint(Tx)
 	// if Tx != nil {
@@ -72,18 +72,18 @@ func SaveTxRPC(Tx *Tx) string {
 	// 	Tx = nil
 	// }
 	// fmt.Println(time.Now(), "Processing Transactions ||TxID", Txid)
-	err := service.Insert("GGBTC", "transaction", Tx)
+	err := service.Insert("LTC", "transaction", Tx)
 	if err != nil {
 		return "Failed1"
 	}
-	err = GetAddressRPC(Tx.TxID)
-	if err != nil {
-		return "Failed2"
-	}
-	err = GetUnSpentTransaction(Tx.TxID)
-	if err != nil {
-		return "Faild3"
-	}
+	//err = GetAddressRPC(Tx.TxID)
+	//if err != nil {
+	//	return "Failed2"
+	//}
+	//err = GetUnSpentTransaction(Tx.TxID)
+	//if err != nil {
+	//	return "Faild3"
+	//}
 	//
 	return "Success"
 }
@@ -107,7 +107,7 @@ func TxQueryOptions(query interface{}) {
 	}
 	defer session.Close()
 
-	boll := session.DB("GGBTC").C("transaction")
+	boll := session.DB("LTC").C("transaction")
 	var q []bson.M
 	boll.Find(query).All(&q)
 	b, err := json.Marshal(q)
@@ -139,9 +139,9 @@ func CheckBlockHeightInMongo() (int, int) {
 	}
 	defer session.Close()
 
-	boll := session.DB("GGBTC").C("blocks")
-	toll := session.DB("GGBTC").C("transaction")
-	status := session.DB("GGBTC").C("status")
+	boll := session.DB("LTC").C("blocks")
+	toll := session.DB("LTC").C("transaction")
+	status := session.DB("LTC").C("status")
 	var a []bson.M
 	var startTime int
 	status.Find(nil).All(&a)
@@ -166,13 +166,13 @@ func CheckBlockHeightInMongo() (int, int) {
 
 func AutoDrawTx() string {
 
-	boll := service.GlobalS.DB("GGBTC").C("blocks")
+	boll := service.GlobalS.DB("LTC").C("blocks")
 	lastNum, _ := boll.Count()
 	fmt.Println(lastNum)
-	startNum, _ := service.GlobalS.DB("GGBTC").C("txbyheight").Count()
+	startNum, _ := service.GlobalS.DB("LTC").C("txbyheight").Count()
 	fmt.Println(startNum)
 	if startNum > 1 {
-		service.GlobalS.DB("GGBTC").C("txbyheight").Remove(bson.M{"id": startNum})
+		service.GlobalS.DB("LTC").C("txbyheight").Remove(bson.M{"id": startNum})
 	}
 	for i := startNum; i <= lastNum; i++ {
 		DrawOutTxs(boll, i)
@@ -188,7 +188,7 @@ func DrawOutTxs(boll *mgo.Collection, order int) {
 	for _, k := range q {
 		TT.Id = k.Height
 		TT.Tx = k.Tx
-		session := service.GlobalS.DB("GGBTC").C("txbyheight")
+		session := service.GlobalS.DB("LTC").C("txbyheight")
 		session.Insert(TT)
 		fmt.Println("Success To Build txbyheight for BlockHeight:", order)
 	}
@@ -199,7 +199,7 @@ func DrawOutTxs(boll *mgo.Collection, order int) {
 func CatchUpTx() string {
 	service.GetMongo(mongourl)
 
-	txarr := service.GlobalS.DB("GGBTC").C("txbyheight")
+	txarr := service.GlobalS.DB("LTC").C("txbyheight")
 	res, err := GetAndSaveTx(txarr)
 	if err != nil {
 		fmt.Println("Error happened")
@@ -210,8 +210,8 @@ func CatchUpTx() string {
 
 func GetStartTime() (int, int) {
 	service.GetMongo(mongourl)
-	temp := service.GlobalS.DB("GGBTC").C("status")
-	tar := service.GlobalS.DB("GGBTC").C("txbyheight")
+	temp := service.GlobalS.DB("LTC").C("status")
+	tar := service.GlobalS.DB("LTC").C("txbyheight")
 	var test Temps
 	var tt Temps
 	//test.Height = 32
@@ -237,10 +237,10 @@ func GetAndSaveTx(txarr *mgo.Collection) (string, error) {
 		//fmt.Println("Blockheight :", Height, "||Has:", countTx, "Number of Txs")
 		if countTx != 0 {
 			tem.Height = Height
-			service.GlobalS.DB("GGBTC").C("status").Update(nil, tem)
+			service.GlobalS.DB("LTC").C("status").Update(nil, tem)
 			for i := 0; i < countTx; i++ {
 				//Test Propuse Delete Height
-				rawTx := GetClearTx(Txs[i], int(Height))
+				rawTx := GetClearTx(Txs[i])
 				// if err != nil {
 				// 	fmt.Println("Unable to Get Transaction,Tx Hash:", Txs[i])
 				// 	return "", err
