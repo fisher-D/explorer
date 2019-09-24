@@ -1,4 +1,4 @@
-package ltc
+package zec
 
 import (
 	"encoding/json"
@@ -24,7 +24,7 @@ func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 				return false
 			}
 			Time = result.BlockTime
-			Vin, Vout := LTCUnspent(k, Database)
+			Vin, Vout := ZECUnspent(k, Database)
 			GetAddress(Time, Vin, Vout, Database)
 		}
 	}
@@ -32,60 +32,11 @@ func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 	return true
 }
 
-// func GetClearTx(txid string) s.Tx {
-// 	var Tx s.Tx
-// 	if txid == GenesisTx {
-// 		return Tx
-// 	}
-// 	ress := GetTxRPC(txid)
-// 	var Txinfo s.TxOld
-// 	data, _ := json.Marshal(ress)
-// 	json.Unmarshal(data, &Txinfo)
-// 	json.Unmarshal(data, &Tx)
-// 	var VV []*s.VoutNew
-// 	var WW []*s.Vin
-// 	for v, k := range Tx.Vout {
-// 		tar := Txinfo.Vout[v].ScriptPubKey
-// 		k.Value = Txinfo.Vout[v].Value
-// 		k.Addr = tar.Addresses[0]
-// 		k.Currency = "LTC"
-// 		k.Spent = false
-// 		VV = append(VV, k)
-// 	}
-// 	Tx.Vout = VV
-// 	for _, in := range Tx.Vin {
-// 		in.Currency = "LTC"
-// 		inTxid := in.Hash
-// 		inIndex := in.Index
-// 		in.Value, in.Address = GetVinValue(inTxid, inIndex)
-// 		in.Spent = true
-// 		WW = append(WW, in)
-// 	}
-// 	Tx.Vin = WW
-// 	return Tx
-// }
-// func GetVinValue(txid string, index uint32) (uint64, string) {
-// 	ress := GetTxRPC(txid)
-// 	var Txinfo s.TxOld
-// 	data, _ := json.Marshal(ress)
-// 	json.Unmarshal(data, &Txinfo)
-// 	var Value uint64
-// 	var Address string
-// 	for v, k := range Txinfo.Vout {
-// 		tar := Txinfo.Vout[v]
-// 		if tar.N == uint64(index) {
-// 			Value = k.Value
-// 			Address = k.ScriptPubKey.Addresses[0]
-// 			return Value, Address
-// 		}
-// 	}
-// 	return 0, ""
-// }
 func GetClearTx(txid string) (tx *service.Tx, err error) {
 	if txid == GenesisTx {
 		return
 	}
-	res_tx, err := CallLTCRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+	res_tx, err := CallZECRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
@@ -113,13 +64,13 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 				pval, _ := txijson.(map[string]interface{})["value"].(json.Number).Float64()
 				txi.Address = txijson.(map[string]interface{})["address"].(string)
 				txi.Value = service.FloatToUint(pval)
-				txi.Currency = "LTC"
+				txi.Currency = "ZEC"
 				txi.Spent = true
 			} else {
 				prevout, _ := GetVoutNewRPC(txi.Hash, txi.Index)
 				txi.Address = prevout.Addr
 				txi.Value = prevout.Value
-				txi.Currency = "LTC"
+				txi.Currency = "ZEC"
 				txi.Spent = true
 			}
 
@@ -130,7 +81,7 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 			txi.Coinbase = txijson.(map[string]interface{})["coinbase"].(string)
 			txi.Sequence, _ = txijson.(map[string]interface{})["sequence"].(json.Number).Int64()
 			tx.Vin = append(tx.Vin, txi)
-			txi.Currency = "LTC"
+			txi.Currency = "ZEC"
 			txi.Spent = true
 		}
 	}
@@ -144,8 +95,8 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 			txodata, txoisinterface := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["addresses"].([]interface{})
 			if txoisinterface {
 				txo.Addr = txodata[0].(string)
-				txo.Currency = "LTC"
-				//txo.Currency = "LTC"
+				txo.Currency = "ZEC"
+				//txo.Currency = "ZEC"
 				txo.Spent = false
 			} else {
 				txo.Addr = ""
@@ -176,7 +127,7 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err err
 		return
 		//return TxData{GenesisTx, []Vin{}, []VoutNew{{"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 5000000000}}}, nil
 	}
-	res_tx, err := CallLTCRPC(URL, "getrawtransaction", 1, []interface{}{tx_id, 1})
+	res_tx, err := CallZECRPC(URL, "getrawtransaction", 1, []interface{}{tx_id, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
@@ -215,7 +166,7 @@ func GetTxRPC(txid string) map[string]interface{} {
 	if txid == GenesisTx {
 		return nil
 	}
-	res_tx, err := CallLTCRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+	res_tx, err := CallZECRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}

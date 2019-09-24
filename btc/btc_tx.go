@@ -162,24 +162,6 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err err
 	return
 }
 
-// func GetVinValue(txid string, index uint64) (uint64, string) {
-// 	ress := GetTxRPC(txid)
-// 	//fmt.Println(ress)
-// 	var Txinfo s.TxOld
-// 	data, _ := json.Marshal(ress)
-// 	json.Unmarshal(data, &Txinfo)
-// 	var Value uint64
-// 	var Address string
-// 	for _, k := range Txinfo.Vout {
-// 		if k.N == index {
-// 			Value = k.Value
-// 			Address = k.ScriptPubKey.Addresses[0]
-// 			//fmt.Println(Address)
-// 			return Value, Address
-// 		}
-// 	}
-// 	return 0, ""
-// }
 func GetTxRPC(txid string) map[string]interface{} {
 	//var Tx Tx
 	if txid == GenesisTx {

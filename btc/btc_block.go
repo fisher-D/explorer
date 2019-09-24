@@ -52,6 +52,8 @@ func GetBlocks(hash string) s.Blocks {
 	var btcb s.Blocks
 	json.Unmarshal(data, &btcb)
 	btcb.NTx = len(btcb.Tx)
+	Difficulty, _ := rawInfo["difficulty"].(json.Number).Float64()
+	btcb.Difficulty = uint64(Difficulty)
 	return btcb
 
 }
@@ -74,8 +76,6 @@ func CallBTCRPC(address string, method string, id interface{}, params []interfac
 	}
 	defer resp.Body.Close()
 	var result map[string]interface{}
-	//fmt.Println(result)
-	//fmt.Println("hahahahahah")
 	decoder := json.NewDecoder(resp.Body)
 	decoder.UseNumber()
 	err = decoder.Decode(&result)

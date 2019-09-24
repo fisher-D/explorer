@@ -1,4 +1,4 @@
-package btc
+package zec
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
+func ZECUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	TxCollection := Database.C("txs")
 	var Txtar s.Tx
 	query := bson.M{"txid": txid}
@@ -51,8 +51,7 @@ func VinUTXO(Vi *s.Vin) *s.UTXO {
 	InUTXO.Index = Vi.Index
 	InUTXO.TxID = Vi.Hash
 	InUTXO.Value = Vi.Value
-	InUTXO.Currency = "BTC"
-	//InUTXO.Spent = nil
+	InUTXO.Currency = "ZEC"
 	//InUTXO.Spent = true
 	return InUTXO
 
@@ -65,6 +64,6 @@ func VoutUTXO(Vo *s.VoutNew, txid string) *s.UTXO {
 	//OutUTXO.Spent = false
 	OutUTXO.TxID = txid
 	OutUTXO.Value = Vo.Value
-	OutUTXO.Currency = "BTC"
+	OutUTXO.Currency = "ZEC"
 	return OutUTXO
 }

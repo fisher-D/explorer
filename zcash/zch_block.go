@@ -1,4 +1,4 @@
-package ltc
+package zec
 
 import (
 	"encoding/json"
@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	URL       = s.LTCURL
-	GenesisTx = s.LTCGenesisTx
+	URL       = s.ZECURL
+	GenesisTx = s.ZECGenesisTx
 	mongourl  = s.Mongourl
 )
 
-func GetltcCountRPC() int64 {
-	res, err := CallLTCRPC(URL, "getblockcount", 1, []interface{}{})
+func GetzecCountRPC() int64 {
+	res, err := CallZECRPC(URL, "getblockcount", 1, []interface{}{})
 	if err != nil {
 		fmt.Println("Error")
 	}
@@ -27,8 +27,8 @@ func GetltcCountRPC() int64 {
 	return count
 }
 
-func GetltcHashRPC(height int64) string {
-	res, err := CallLTCRPC(URL, "getblockhash", 1, []interface{}{height})
+func GetzecHashRPC(height int64) string {
+	res, err := CallZECRPC(URL, "getblockhash", 1, []interface{}{height})
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -42,18 +42,18 @@ func GetBlocks(hash string) s.Blocks {
 		fmt.Println("Error")
 	}
 	rawInfo := res["result"].(map[string]interface{})
-	//	fmt.Println(rawInfo)
+	//fmt.Println(rawInfo)
 	data, _ := json.Marshal(rawInfo)
-	var ltcb s.Blocks
-	json.Unmarshal(data, &ltcb)
-	ltcb.NTx = len(ltcb.Tx)
+	var zecb s.Blocks
+	json.Unmarshal(data, &zecb)
+	zecb.NTx = len(zecb.Tx)
 	Difficulty, _ := rawInfo["difficulty"].(json.Number).Float64()
-	ltcb.Difficulty = uint64(Difficulty)
-	return ltcb
+	zecb.Difficulty = uint64(Difficulty)
+	return zecb
 
 }
 
-func CallLTCRPC(address string, method string, id interface{}, params []interface{}) (map[string]interface{}, error) {
+func CallZECRPC(address string, method string, id interface{}, params []interface{}) (map[string]interface{}, error) {
 	data, err := json.Marshal(map[string]interface{}{
 		"method": method,
 		"id":     id,
@@ -89,19 +89,19 @@ func CalaulateTime(blockCollection *mgo.Collection) (int64, int64) {
 	//startheight, _ := blockCollection.Count()
 	blockCollection.Remove(target)
 	startheight := int64(target.Height)
-	endheight := GetltcCountRPC()
+	endheight := GetzecCountRPC()
 	return startheight, endheight
 }
 
 func CatchUpBlockss() string {
 	s.GetMongo(mongourl)
-	Database := s.GlobalS.DB("LTC")
+	Database := s.GlobalS.DB("ZEC")
 	blockCollection := Database.C("blocks")
 	//txCollection := Database.C("txs")
 	//utxoCollection := Database.C("utxo")
 	start, end := CalaulateTime(blockCollection)
 	for i := start; i <= end; i++ {
-		hash := GetltcHashRPC(i)
+		hash := GetzecHashRPC(i)
 		blocks := GetBlocks(hash)
 		log.Println("Process Block With Height: ", i, "; And Blocks Hash :", hash)
 		blockCollection.Insert(blocks)
