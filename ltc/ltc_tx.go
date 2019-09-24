@@ -18,12 +18,12 @@ func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 		res := TxCollection.Find(bson.M{"txid": k}).One(&q)
 		if res != nil {
 			result, _ := GetClearTx(k)
-			err := TxCollection.Insert(result)
-			if err != nil {
-				log.Println("What could it be ?")
-				return false
+			TxCollection.Insert(result)
+			if result == nil {
+				Time = 0
+			} else {
+				Time = result.BlockTime
 			}
-			Time = result.BlockTime
 			Vin, Vout := LTCUnspent(k, Database)
 			GetAddress(Time, Vin, Vout, Database)
 		}
