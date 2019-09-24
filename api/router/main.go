@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	getdata "github.com/GGBTC/explorer/api/getData"
 
@@ -114,7 +115,6 @@ func GetAddressUnSpent(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	params := mux.Vars(req)
-	//params := mux.Vars(req)
 	coinName := params["coinName"]
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
@@ -135,18 +135,22 @@ func GetAddressUnSpent(w http.ResponseWriter, req *http.Request) {
 func GetRecentTranscation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
-	//fmt.Println("hahahahahaha")
 	params := mux.Vars(req)
 	coinName := params["coinName"]
+	page:= params["page"]
+	pageNum ,err:= strconv.Atoi(page)
+	if err!=nil {
+		fmt.Println(err)
+	}
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
 		mongo.GetConnection("BTC", "txs")
-		result := mongo.GetRecentTransCation()
+		result := mongo.GetRecentTransCation(pageNum)
 		json.NewEncoder(w).Encode(result)
 	} else if coinName == "ltc" {
 		mongo := getdata.Mongo{}
 		mongo.GetConnection("LTC", "txs")
-		result := mongo.GetRecentTransCation()
+		result := mongo.GetRecentTransCation(pageNum)
 		json.NewEncoder(w).Encode(result)
 	}
 }
@@ -155,19 +159,23 @@ func GetRecentTranscation(w http.ResponseWriter, req *http.Request) {
 func GetRecentBlocks(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
-	//	fmt.Println("")
 	params := mux.Vars(req)
 	coinName := params["coinName"]
+	page:= params["page"]
+	pageNum ,err:= strconv.Atoi(page)
+	if err!=nil {
+		fmt.Println(err)
+	}
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
 		mongo.GetConnection("BTC", "blocks")
-		result := mongo.GetRecentBlock()
+		result := mongo.GetRecentBlock(pageNum)
 
 		json.NewEncoder(w).Encode(result)
 	} else if coinName == "ltc" {
 		mongo := getdata.Mongo{}
 		mongo.GetConnection("LTC", "blocks")
-		result := mongo.GetRecentBlock()
+		result := mongo.GetRecentBlock(pageNum)
 		json.NewEncoder(w).Encode(result)
 	}
 }
@@ -185,9 +193,8 @@ func main() {
 	//Done
 	router.HandleFunc("/latestblock/{coinName}", GetLastBlock).Methods("GET")
 	//Done
-	router.HandleFunc("/recent/tx/{coinName}", GetRecentTranscation).Methods("GET")
+	router.HandleFunc("/recent/tx/{coinName}/{page}", GetRecentTranscation).Methods("GET")
 	//Done
-	router.HandleFunc("/recent/blocks/{coinName}", GetRecentBlocks).Methods("GET")
+	router.HandleFunc("/recent/blocks/{coinName}/{page}", GetRecentBlocks).Methods("GET")
 	log.Fatal(http.ListenAndServe(":9899", router))
-	fmt.Println("1")
 }

@@ -21,12 +21,12 @@ type GetData interface {
 	UpdateOutAccount(str string, info s.Address)
 	InsertErr(err string, reason interface{})
 	GetAccountInfoByAddress(address string) (outAccount s.Address)
-	GetRecentTransCation() (transCationInfo []s.Tx)
-	GetRecentBlock() (Block []s.Blocks)
+	GetRecentTransCation(pageNum int) (transCationInfo []s.Tx)
+	GetRecentBlock(pageNum int) (Block []s.Blocks)
 }
 
 const (
-	URL = "localhost:27017" //连接mongoDB启动服务的端口号 你得先启动mongoDB服务
+	URL = "192.168.3.16:27017" //连接mongoDB启动服务的端口号 你得先启动mongoDB服务
 )
 
 var client *mgo.Collection
@@ -106,16 +106,18 @@ func (mongo Mongo) GetUnSpent(address string) []s.UTXO {
 	return Unspent
 }
 
-func (mongo Mongo) GetRecentTransCation() (transCationInfo []s.Tx) {
+func (mongo Mongo) GetRecentTransCation(pageNum int) (transCationInfo []s.Tx) {
 	var res []s.Tx
-	client.Find(bson.M{}).Sort("-blocktime").Limit(1000).All(&res)
-	fmt.Println(len(res))
+	limitNum := 10
+	skipNum :=(pageNum)*10
+	client.Find(bson.M{}).Sort("-blocktime").Limit(limitNum).Skip(skipNum).All(&res)
 	return res
 }
 
-func (mongo Mongo) GetRecentBlock() (Block []s.Blocks) {
+func (mongo Mongo) GetRecentBlock(pageNum int) (Block []s.Blocks) {
 	var res []s.Blocks
-	client.Find(bson.M{}).Sort("-height").Limit(1000).All(&res)
-	fmt.Println(len(res))
+	limitNum := 10
+	skipNum :=(pageNum)*10
+	client.Find(bson.M{}).Sort("-height").Limit(limitNum).Skip(skipNum).All(&res)
 	return res
 }
