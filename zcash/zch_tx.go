@@ -10,6 +10,9 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+//TODO
+//解决非GenesisTx 交易无法被查询的问题。
+//明确扫描方式是否正确
 func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 	TxCollection := Database.C("txs")
 	var Time uint64
@@ -18,12 +21,13 @@ func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 		res := TxCollection.Find(bson.M{"txid": k}).One(&q)
 		if res != nil {
 			result, _ := GetClearTx(k)
-			err := TxCollection.Insert(result)
-			if err != nil {
-				log.Println("What could it be ?")
-				return false
+			TxCollection.Insert(result)
+			if result == nil {
+				Time = 0
+			} else {
+				Time = result.BlockTime
 			}
-			Time = result.BlockTime
+			//Time = result.BlockTime
 			Vin, Vout := ZECUnspent(k, Database)
 			GetAddress(Time, Vin, Vout, Database)
 		}
@@ -40,12 +44,15 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
+	//fmt.Println(txid)
+	//fmt.Println(res_tx)
 	tx = new(service.Tx)
 	txjson := res_tx["result"].(map[string]interface{})
 	blocktime, _ := txjson["blocktime"].(json.Number).Int64()
 	tx.BlockTime = uint64(blocktime)
 	tx.BlockHash = txjson["blockhash"].(string)
-
+	Version, _ := txjson["version"].(json.Number).Int64()
+	tx.Version = uint32(Version)
 	total_tx_out := uint64(0)
 	total_tx_in := uint64(0)
 

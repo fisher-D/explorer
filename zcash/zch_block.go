@@ -72,6 +72,7 @@ func CallZECRPC(address string, method string, id interface{}, params []interfac
 	defer resp.Body.Close()
 	var result map[string]interface{}
 	//var result map[string]interface{}
+
 	decoder := json.NewDecoder(resp.Body)
 	decoder.UseNumber()
 	err = decoder.Decode(&result)
@@ -90,6 +91,9 @@ func CalaulateTime(blockCollection *mgo.Collection) (int64, int64) {
 	blockCollection.Remove(target)
 	startheight := int64(target.Height)
 	endheight := GetzecCountRPC()
+	if startheight == 0 {
+		startheight = 1
+	}
 	return startheight, endheight
 }
 

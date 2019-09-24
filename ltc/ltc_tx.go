@@ -94,7 +94,8 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 	blocktime, _ := txjson["blocktime"].(json.Number).Int64()
 	tx.BlockTime = uint64(blocktime)
 	tx.BlockHash = txjson["blockhash"].(string)
-
+	Version, _ := txjson["version"].(json.Number).Int64()
+	tx.Version = uint32(Version)
 	total_tx_out := uint64(0)
 	total_tx_in := uint64(0)
 
