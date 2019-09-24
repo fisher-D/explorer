@@ -5,8 +5,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/GGBTC/explorer/pkgs"
-
 	s "github.com/GGBTC/explorer/service"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -24,7 +22,7 @@ type GetData interface {
 	InsertErr(err string, reason interface{})
 	GetAccountInfoByAddress(address string) (outAccount s.Address)
 	GetRecentTransCation() (transCationInfo []s.Tx)
-	GetRecentBlock() (Block []pkgs.ClearBlock)
+	GetRecentBlock() (Block []s.Blocks)
 }
 
 const (
@@ -74,12 +72,12 @@ func (mongo Mongo) GetAllTransCationData() (transCationInfo []s.Tx) {
 	return res
 }
 
-func (mongo Mongo) FindOutByAddress(address string) (result pkgs.Address) {
-	var res pkgs.Address
+func (mongo Mongo) FindOutByAddress(address string) (result s.Address) {
+	var res s.Address
 	client.Find(bson.M{"address": address}).One(&res)
 	return res
 }
-func (mongo Mongo) InsertOut(info pkgs.Address) {
+func (mongo Mongo) InsertOut(info s.Address) {
 	client.Insert(info)
 }
 

@@ -4,21 +4,21 @@ package main
 import (
 	"time"
 
-	"github.com/GGBTC/explorer/pkgs"
+	"github.com/GGBTC/explorer/btc"
 )
 
 func main() {
 	//pkgs.CatchUpBlocks()
-	//service.GetMongo("loaclhost:27017")
+	//	service.GetMongo(mongourl)
 	running := true
 	for running {
 		KeepRunning()
 	}
 }
 func KeepRunning() {
-	res := pkgs.CatchUpTx()
+	res := btc.CatchUpBlockss()
 	if res == "Success" {
-		time.Sleep(time.Duration(10) * time.Second)
+		time.Sleep(time.Duration(60) * time.Second)
 	}
 	//return true
 }

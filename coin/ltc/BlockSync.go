@@ -4,7 +4,7 @@ package main
 import (
 	"time"
 
-	"github.com/GGBTC/explorer/pkgs"
+	"github.com/GGBTC/explorer/ltc"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 	}
 }
 func KeepRunning() {
-	res := pkgs.CatchUpBlocks()
+	res := ltc.CatchUpBlockss()
 	if res == "Success" {
 		time.Sleep(time.Duration(60) * time.Second)
 	}

@@ -12,7 +12,7 @@ import (
 
 func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 	TxCollection := Database.C("txs")
-	//var Time int64
+	var Time uint64
 	for _, k := range txidArray {
 		var q bson.M
 		res := TxCollection.Find(bson.M{"txid": k}).One(&q)
@@ -23,7 +23,7 @@ func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 				log.Println("What could it be ?")
 				return false
 			}
-			Time := result.Blocktime
+			Time = result.BlockTime
 			Vin, Vout := LTCUnspent(k, Database)
 			GetAddress(Time, Vin, Vout, Database)
 		}
@@ -42,14 +42,14 @@ func GetClearTx(txid string) s.Tx {
 	data, _ := json.Marshal(ress)
 	json.Unmarshal(data, &Txinfo)
 	json.Unmarshal(data, &Tx)
-	var VV []s.VoutNew
-	var WW []s.Vin
+	var VV []*s.VoutNew
+	var WW []*s.Vin
 	for v, k := range Tx.Vout {
 		tar := Txinfo.Vout[v].ScriptPubKey
 		k.Value = Txinfo.Vout[v].Value
 		//fmt.Println("========================")
 		//	fmt.Println(k.Value)
-		k.Addresses = tar.Addresses[0]
+		k.Addr = tar.Addresses[0]
 		//k.Type = tar.Type
 		k.Currency = "LTC"
 		VV = append(VV, k)
@@ -57,23 +57,23 @@ func GetClearTx(txid string) s.Tx {
 	Tx.Vout = VV
 	for _, in := range Tx.Vin {
 		in.Currency = "LTC"
-		inTxid := in.Txid
-		inIndex := in.Vout
+		inTxid := in.Hash
+		inIndex := in.Index
 		in.Value, in.Address = GetVinValue(inTxid, inIndex)
 		WW = append(WW, in)
 	}
 	Tx.Vin = WW
 	return Tx
 }
-func GetVinValue(txid string, index int64) (int64, string) {
+func GetVinValue(txid string, index uint32) (uint64, string) {
 	ress := GetTxRPC(txid)
 	var Txinfo s.TxOld
 	data, _ := json.Marshal(ress)
 	json.Unmarshal(data, &Txinfo)
-	var Value int64
+	var Value uint64
 	var Address string
 	for _, k := range Txinfo.Vout {
-		if k.N == index {
+		if k.N == uint64(index) {
 			Value = k.Value
 			Address = k.ScriptPubKey.Addresses[0]
 			return Value, Address

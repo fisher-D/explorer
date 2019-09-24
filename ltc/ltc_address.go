@@ -6,7 +6,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func GetAddress(time int64, in []*s.UTXO, out []*s.UTXO, Database *mgo.Database) {
+func GetAddress(time uint64, in []*s.UTXO, out []*s.UTXO, Database *mgo.Database) {
 	addressCollection := Database.C("address")
 	for _, k := range in {
 		predata := VinInfo(k)
@@ -69,7 +69,7 @@ func FillParas(addreinfo *s.Address) *s.Address {
 }
 
 //Not Found
-func CompleteAddress(Time int64, addreinfo *s.Address) *s.Address {
+func CompleteAddress(Time uint64, addreinfo *s.Address) *s.Address {
 	addreinfo.FirstSeen = Time
 	addreinfo.LastSeen = Time
 	res := FillParas(addreinfo)
@@ -78,7 +78,7 @@ func CompleteAddress(Time int64, addreinfo *s.Address) *s.Address {
 	}
 	return res
 }
-func UpdateAddress(Time int64, olds s.Address, news *s.Address) *s.Address {
+func UpdateAddress(Time uint64, olds s.Address, news *s.Address) *s.Address {
 	news.FirstSeen = olds.FirstSeen
 	news.LastSeen = Time
 	for _, k := range olds.Txs {
@@ -94,7 +94,7 @@ func UpdateAddress(Time int64, olds s.Address, news *s.Address) *s.Address {
 	return res
 
 }
-func FinishAddress(Time int64, addressinfo *s.Address, collection *mgo.Collection) bool {
+func FinishAddress(Time uint64, addressinfo *s.Address, collection *mgo.Collection) bool {
 	if addressinfo != nil {
 		var olds s.Address
 		query := bson.M{"address": addressinfo.Address}
