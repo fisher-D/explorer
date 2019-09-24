@@ -8,7 +8,7 @@ import (
 
 func OmniProcesser(opreturn string) (*OmniTx, error) {
 	Omni := strings.Split(opreturn, " ")[1]
-	fmt.Println(Omni)
+	//fmt.Println(Omni)
 	tar := new(OmniTx)
 	if len(Omni) != 40 {
 		return nil, fmt.Errorf("Unknown Type of Omni String")
@@ -35,7 +35,7 @@ func OmniProcesser(opreturn string) (*OmniTx, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to Transfer Value")
 	}
-	tar.OP_RETURN = opreturn
+	tar.OP_RETURN = Omni
 	tar.Value = n
 	return tar, nil
 }

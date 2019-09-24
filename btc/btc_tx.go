@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/GGBTC/explorer/service"
-	s "github.com/GGBTC/explorer/service"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -67,11 +65,13 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 				txi.Address = txijson.(map[string]interface{})["address"].(string)
 				txi.Value = service.FloatToUint(pval)
 				txi.Currency = "BTC"
+				txi.Spent = true
 			} else {
 				prevout, _ := GetVoutNewRPC(txi.Hash, txi.Index)
 				txi.Address = prevout.Addr
 				txi.Value = prevout.Value
 				txi.Currency = "BTC"
+				txi.Spent = true
 			}
 
 			total_tx_in += uint64(txi.Value)
@@ -82,6 +82,7 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 			txi.Sequence, _ = txijson.(map[string]interface{})["sequence"].(json.Number).Int64()
 			tx.Vin = append(tx.Vin, txi)
 			txi.Currency = "BTC"
+			txi.Spent = true
 		}
 	}
 	for _, txojson := range txjson["vout"].([]interface{}) {
@@ -95,17 +96,25 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 			if txoisinterface {
 				txo.Addr = txodata[0].(string)
 				txo.Currency = "BTC"
+				//txo.Currency = "BTC"
+				txo.Spent = false
 			} else {
 				txo.Addr = ""
 			}
 		} else {
 			res := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["asm"].(string)
-			Omni := "OP_RETURN 6f6d6e69"
-			if strings.Contains(res, Omni) == true {
-				txo.Addr = res
-				txo.Currency = "USDT"
+			Omni, err := OmniProcesser(res)
+			if err != nil {
+				txo.Addr = "Unknown"
+				txo.Currency = "Not strandard Omni"
+			} else {
+				txo.Addr = Omni.OP_RETURN
+				txo.Currency = Omni.TokenName
+				//txo.Index =
+				txo.Value = Omni.Value
 			}
 		}
+
 		tx.Vout = append(tx.Vout, txo)
 		total_tx_out += uint64(txo.Value)
 	}
@@ -118,7 +127,6 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err err
 		return
 		//return TxData{GenesisTx, []Vin{}, []VoutNew{{"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 5000000000}}}, nil
 	}
-	// Get the TX from bitcoind RPC API
 	res_tx, err := CallBTCRPC(URL, "getrawtransaction", 1, []interface{}{tx_id, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
@@ -133,44 +141,45 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err err
 		txodata, txoisinterface := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["addresses"].([]interface{})
 		if txoisinterface {
 			txo.Addr = txodata[0].(string)
-			txo.Currency = "BTC"
+
 		} else {
 			txo.Addr = ""
 		}
 	} else {
 		res := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["asm"].(string)
-		Omni := "OP_RETURN 6f6d6e69"
-		//Temporary
-		//I use OP_RETURN 6f6d6e69 as condition to check wether a nulldata is an Omni or Not
-		if strings.Contains(res, Omni) == true {
-			txo.Addr = res
-			txo.Currency = "USDT"
+		Omni, err := OmniProcesser(res)
+		if err != nil {
+			txo.Addr = "Unknown"
+			txo.Currency = "Not strandard Omni"
+		} else {
+			txo.Addr = Omni.OP_RETURN
+			txo.Currency = Omni.TokenName
+			//txo.Index =
+			txo.Value = Omni.Value
 		}
 	}
-	//txospent := new(TxoSpent)
-	//txospent.Spent = false
-	//txo.Spent = txospent
+
 	return
 }
 
-func GetVinValue(txid string, index uint64) (uint64, string) {
-	ress := GetTxRPC(txid)
-	//fmt.Println(ress)
-	var Txinfo s.TxOld
-	data, _ := json.Marshal(ress)
-	json.Unmarshal(data, &Txinfo)
-	var Value uint64
-	var Address string
-	for _, k := range Txinfo.Vout {
-		if k.N == index {
-			Value = k.Value
-			Address = k.ScriptPubKey.Addresses[0]
-			//fmt.Println(Address)
-			return Value, Address
-		}
-	}
-	return 0, ""
-}
+// func GetVinValue(txid string, index uint64) (uint64, string) {
+// 	ress := GetTxRPC(txid)
+// 	//fmt.Println(ress)
+// 	var Txinfo s.TxOld
+// 	data, _ := json.Marshal(ress)
+// 	json.Unmarshal(data, &Txinfo)
+// 	var Value uint64
+// 	var Address string
+// 	for _, k := range Txinfo.Vout {
+// 		if k.N == index {
+// 			Value = k.Value
+// 			Address = k.ScriptPubKey.Addresses[0]
+// 			//fmt.Println(Address)
+// 			return Value, Address
+// 		}
+// 	}
+// 	return 0, ""
+// }
 func GetTxRPC(txid string) map[string]interface{} {
 	//var Tx Tx
 	if txid == GenesisTx {

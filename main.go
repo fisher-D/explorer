@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/GGBTC/explorer/btc"
@@ -9,9 +10,12 @@ import (
 func main() {
 	//ltctxid := "af6af508082dd96714bb03129364abe77ddd422091827bd21343541140bebefb"
 	//btctxid := "af6af508082dd96714bb03129364abe77ddd422091827bd21343541140bebefb"
+	omnitxid := "649902c378ca99a537a78ce4475294ed4a6ffe2b1e1564ccef4bb1c859773c17"
 	//res := ltc.CatchUpBlockss()
-	res := btc.CatchUpBlockss()
-	fmt.Println(res)
+	//res := btc.CatchUpBlockss()
+	res, _ := btc.GetClearTx(omnitxid)
+	data, _ := json.Marshal(res)
+	fmt.Println(string(data))
 
 }
 

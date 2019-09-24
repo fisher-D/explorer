@@ -19,28 +19,28 @@ type Txs struct {
 	Currency string `json:"currency"`
 }
 type UTXO struct {
-	TxID     string
 	Index    uint32
+	TxID     string
 	Address  string
 	Value    uint64
-	Spent    bool
 	Currency string
+	Spent    bool
 }
 type Tx struct {
-	Txid      string `json:"txid"`
-	Version   uint32 `json:"version"`
-	BlockHash string `json:"blockhash"`
-	//BlockHeight uint       `json:"blockheight"`
+	Txid      string     `json:"txid"`
+	Version   uint32     `json:"version"`
+	BlockHash string     `json:"blockhash"`
 	BlockTime uint64     `json:"blocktime"`
 	Vin       []*Vin     `json:"Vin"`
 	Vout      []*VoutNew `json:"Vout"`
 }
 
 type VoutNew struct {
+	Index    uint32 `json:"index"`
 	Addr     string `json:"address"`
 	Value    uint64 `json:"value"`
-	Index    uint32 `json:"index"`
 	Currency string `json:"currency"`
+	Spent    bool   `json:"spent"`
 }
 
 type Vin struct {
@@ -51,7 +51,9 @@ type Vin struct {
 	Coinbase string `json:"coinbase,omitempty"`
 	Sequence int64  `json:"sequence,omitempty"`
 	Currency string `json:"currency"`
+	Spent    bool   `json:"spent"`
 }
+
 type TxOld struct {
 	Txid      string `json:"txid"`
 	Blockhash string `json:"blockhash"`
@@ -64,24 +66,20 @@ type TxOld struct {
 type ScriptPubKey struct {
 	Addresses []string `json:"addresses"`
 	Asm       string   `json:"asm"`
-	//Hex string `json:"hex"`
-	//	ReqSigs   int      `json:"reqSigs"`
-	Type string `json:"type"`
+	Type      string   `json:"type"`
 }
+
 type Vout struct {
 	N            uint64       `json:"n"`
 	ScriptPubKey ScriptPubKey `json:"scriptPubKey"`
 	Value        uint64       `json:"value"`
-	//Currency     string       `json:"currency"`
 }
 type Blocks struct {
-	Height int    `json:"height"`
-	Hash   string `json:"hash"`
-	//	Confirmations int      `json:"confirmations"`
-	Difficulty uint64 `json:"difficulty"`
-	Version    int    `json:"version"`
-	//VersionHex string   `json:"versionHex"`
-	Time int      `json:"time"`
-	NTx  int      `json:"NTx"`
-	Tx   []string `json:"tx"`
+	Height     int      `json:"height"`
+	Hash       string   `json:"hash"`
+	Difficulty uint64   `json:"difficulty"`
+	Version    int      `json:"version"`
+	Time       int      `json:"time"`
+	NTx        int      `json:"NTx"`
+	Tx         []string `json:"tx"`
 }
