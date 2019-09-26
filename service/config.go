@@ -19,4 +19,5 @@ const (
 	ZECGenesisTx = "851bf6fbf7a976327817c738c489d7fa657752445430922d94c983c0b9ed4609"
 	//MongoDB
 	Mongourl = "localhost:27017"
+	//Mongourl = "localhost:27017"
 )

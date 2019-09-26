@@ -71,6 +71,7 @@ func CallZECRPC(address string, method string, id interface{}, params []interfac
 	}
 	defer resp.Body.Close()
 	var result map[string]interface{}
+	//var result interface{}
 	//var result map[string]interface{}
 
 	decoder := json.NewDecoder(resp.Body)

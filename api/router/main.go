@@ -137,9 +137,9 @@ func GetRecentTranscation(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	params := mux.Vars(req)
 	coinName := params["coinName"]
-	page:= params["page"]
-	pageNum ,err:= strconv.Atoi(page)
-	if err!=nil {
+	page := params["page"]
+	pageNum, err := strconv.Atoi(page)
+	if err != nil {
 		fmt.Println(err)
 	}
 	if coinName == "btc" {
@@ -161,9 +161,9 @@ func GetRecentBlocks(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 	params := mux.Vars(req)
 	coinName := params["coinName"]
-	page:= params["page"]
-	pageNum ,err:= strconv.Atoi(page)
-	if err!=nil {
+	page := params["page"]
+	pageNum, err := strconv.Atoi(page)
+	if err != nil {
 		fmt.Println(err)
 	}
 	if coinName == "btc" {
