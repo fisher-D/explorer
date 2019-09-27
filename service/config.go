@@ -18,6 +18,6 @@ const (
 	ZECURL       = "http://admin:admin@47.244.98.227:13144"
 	ZECGenesisTx = "851bf6fbf7a976327817c738c489d7fa657752445430922d94c983c0b9ed4609"
 	//MongoDB
+	//Mongourl = "47.105.199.88:27017"
 	Mongourl = "localhost:27017"
-	//Mongourl = "localhost:27017"
 )

@@ -30,6 +30,9 @@ func main() {
 	data, _ := json.Marshal(res)
 	fmt.Println(string(data))
 }
+func removetest() {
+
+}
 
 // func main() {
 // 	//pkgs.CatchUpBlocks()

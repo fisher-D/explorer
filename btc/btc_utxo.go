@@ -28,8 +28,9 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	UTXOCollection := Database.C("utxo")
 	log.Print("Remove used UTXOs")
 	for _, r := range Remove {
-		//r.Spent = ""
-		UTXOCollection.Remove(r)
+		if r != nil {
+			UTXOCollection.Remove(r)
+		}
 	}
 	log.Print("Insert new UTXOs")
 	for _, i := range Store {
@@ -38,9 +39,11 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 		//Build Uinque Index
 		//UTXOCollection.Remove(i)
 		//fmt.Println(i)
-		err := UTXOCollection.Insert(i)
-		if err != nil {
-			log.Println("No need to store nil infor")
+		if i != nil {
+			err := UTXOCollection.Insert(i)
+			if err != nil {
+				log.Println("No need to store nil infor")
+			}
 		}
 	}
 	return Remove, Store
