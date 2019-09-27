@@ -151,24 +151,18 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 			} else {
 				txo.Addr = ""
 			}
-			// } else {
-			// 	res := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["asm"].(string)
-			// 	//Omni, err := OmniProcesser(res)
-			// 	if err != nil {
-			// 		txo.Addr = "Unknown"
-			// 		txo.Currency = "Not strandard Omni"
-			// 	} else {
-			// 		txo.Addr = Omni.OP_RETURN
-			// 		txo.Currency = Omni.TokenName
-			// 		//txo.Index =
-			// 		txo.Value = Omni.Value
-			// 	}
 		}
 
 		tx.Vout = append(tx.Vout, txo)
 		total_tx_out += uint64(txo.Value)
 	}
+	tx.Type = "LTC"
+	fee := total_tx_in - total_tx_out
+	tx.Totalin = total_tx_in
+	tx.Totalout = total_tx_out
+	tx.Fee = fee
 	tx.Txid = txid
+	//tx.Txid = txid
 	return tx, nil
 }
 func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err error) {

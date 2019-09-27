@@ -49,7 +49,7 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 	tx.Version = uint32(Version)
 	total_tx_out := uint64(0)
 	total_tx_in := uint64(0)
-
+	var baseinfor string
 	for _, txijson := range txjson["vin"].([]interface{}) {
 		_, coinbase := txijson.(map[string]interface{})["coinbase"]
 		if !coinbase {
@@ -80,6 +80,7 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 		} else {
 			txi := new(service.Vin)
 			txi.Coinbase = txijson.(map[string]interface{})["coinbase"].(string)
+			baseinfor = txi.Coinbase
 			txi.Sequence, _ = txijson.(map[string]interface{})["sequence"].(json.Number).Int64()
 			tx.Vin = append(tx.Vin, txi)
 			txi.Currency = "BTC"
@@ -97,7 +98,7 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 			if txoisinterface {
 				txo.Addr = txodata[0].(string)
 				txo.Currency = "BTC"
-				//txo.Currency = "BTC"
+				tx.Type = "BTC"
 				txo.Spent = false
 			} else {
 				txo.Addr = ""
@@ -108,18 +109,47 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 			if err != nil {
 				txo.Addr = "Unknown"
 				txo.Currency = "Not strandard Omni"
+				tx.Type = "Unknown"
 			} else {
 				txo.Addr = Omni.OP_RETURN
 				txo.Currency = Omni.TokenName
 				//txo.Index =
 				txo.Value = Omni.Value
+				baseinfor = "Omni"
 			}
 		}
-
 		tx.Vout = append(tx.Vout, txo)
-		total_tx_out += uint64(txo.Value)
+		if txo.Currency == "BTC" {
+			total_tx_out += uint64(txo.Value)
+		}
 	}
-	tx.Txid = txid
+	//fmt.Println(baseinfor)
+	switch baseinfor {
+	case "Omni":
+		tx.Type = "USDT"
+		fee := total_tx_in - total_tx_out
+		tx.Totalin = total_tx_in
+		tx.Totalout = total_tx_out
+		tx.Fee = fee
+		tx.Txid = txid
+	case "Unknown":
+		tx.Type = "Unknown"
+		//tx.Totalout = total_tx_out
+		tx.Fee = uint64(0)
+		tx.Txid = txid
+	case "":
+		tx.Type = "BTC"
+		fee := total_tx_in - total_tx_out
+		tx.Totalin = total_tx_in
+		tx.Totalout = total_tx_out
+		tx.Fee = fee
+		tx.Txid = txid
+	default:
+		tx.Type = "CoinBase"
+		tx.Totalout = total_tx_out
+		tx.Fee = uint64(0)
+		tx.Txid = txid
+	}
 	return tx, nil
 }
 func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err error) {
@@ -157,6 +187,7 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err err
 			txo.Currency = Omni.TokenName
 			//txo.Index =
 			txo.Value = Omni.Value
+			//tx.Type = "Omni"
 		}
 	}
 

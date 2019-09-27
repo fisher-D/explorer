@@ -31,6 +31,10 @@ type Tx struct {
 	Version   uint32     `json:"version"`
 	BlockHash string     `json:"blockhash"`
 	BlockTime uint64     `json:"blocktime"`
+	Totalin   uint64     `json:"valuein"`
+	Totalout  uint64     `json:"valueout"`
+	Type      string     `json:"type"`
+	Fee       uint64     `json:"fee"`
 	Vin       []*Vin     `json:"Vin"`
 	Vout      []*VoutNew `json:"Vout"`
 }

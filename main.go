@@ -8,23 +8,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GGBTC/explorer/service"
-
+	"github.com/GGBTC/explorer/btc"
 	zec "github.com/GGBTC/explorer/zcash"
 )
 
 func main() {
-	//3
-	//txid := "9a4adaf3953818eb1634407032db0e00ef2441c49c1364161411d0743ec1a939"
-	//2
-	//txid := "8974d08d1c5f9c860d8b629d582a56659a4a1dcb2b5f98a25a5afcc2a784b0f4"
-	//txid := "ae61ee40c37fdc05468786cf6e83a98741a214c41fc5d62057f768d9b0af769e"
-	txid := "a311f80d7e54f4d1d1c3e0ea475ad7ed709818a91301939f474cbde72ba0f38b"
-	res_tx, err := CallZECRPC1(service.ZECURL, "getrawtransaction", 1, []interface{}{txid, 1})
-	if err != nil {
-		log.Fatalf("Err: %v", err)
-	}
-	fmt.Println(res_tx)
+	//Omni
+	//txid := "6fa242458251959ce83ccc5e1e55527eae93ba9fa40410cf05cc507dbccfa014"
+	//BTC
+	//txid := "2ad3bb53f75ddc5de92be3550e4759d17c5c8851f6b750f685d881d90faf8851"
+	//CoinBase
+	txid := "2e9de4a044dd584527c46100c206ec709e810a79993bd7c6807ff94107b2636d"
+	//Complex
+	//txid := "55fc58508ec64d5e907bc0b3eb9918fc4bf6b31fb87ca6e830f9e0f00ab62779"
+	// res_tx, err := CallZECRPC1(service.ZECURL, "getrawtransaction", 1, []interface{}{txid, 1})
+	// if err != nil {
+	// 	log.Fatalf("Err: %v", err)
+	// }
+	// fmt.Println(res_tx)
+	res, _ := btc.GetClearTx(txid)
+	data, _ := json.Marshal(res)
+	fmt.Println(string(data))
 }
 
 // func main() {
