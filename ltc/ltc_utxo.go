@@ -33,7 +33,7 @@ func LTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	}
 	log.Print("Insert new UTXOs")
 	for _, i := range Store {
-		UTXOCollection.Remove(i)
+		//UTXOCollection.Remove(i)
 		err := UTXOCollection.Insert(i)
 		if err != nil {
 			fmt.Println("Fuck Store")
@@ -49,7 +49,7 @@ func VinUTXO(Vi *s.Vin) *s.UTXO {
 	}
 	InUTXO.Address = Vi.Address
 	InUTXO.Index = Vi.Index
-	InUTXO.TxID = Vi.Hash
+	InUTXO.Utxo = Vi.Hash
 	InUTXO.Value = Vi.Value
 	InUTXO.Currency = "LTC"
 	//InUTXO.Spent = true
@@ -62,7 +62,7 @@ func VoutUTXO(Vo *s.VoutNew, txid string) *s.UTXO {
 	OutUTXO.Address = Vo.Addr
 	OutUTXO.Index = Vo.Index
 	//OutUTXO.Spent = false
-	OutUTXO.TxID = txid
+	OutUTXO.Utxo = txid
 	OutUTXO.Value = Vo.Value
 	OutUTXO.Currency = "LTC"
 	return OutUTXO

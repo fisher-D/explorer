@@ -29,7 +29,7 @@ func VinInfo(InUTXO *s.UTXO) *s.Address {
 	Addre := new(s.Address)
 	Addre.Address = InUTXO.Address
 	Txi.Index = InUTXO.Index
-	Txi.Txid = InUTXO.TxID
+	Txi.Txid = InUTXO.Utxo
 	Txi.Value = InUTXO.Value
 	Txi.Currency = "LTC"
 	InUTXO.Spent = true
@@ -43,7 +43,7 @@ func VoutInfo(OutUTXO *s.UTXO) *s.Address {
 	var Txis []s.Txs
 	Addre := new(s.Address)
 	Txi.Index = OutUTXO.Index
-	Txi.Txid = OutUTXO.TxID
+	Txi.Txid = OutUTXO.Utxo
 	Txi.Value = OutUTXO.Value
 	Txi.Currency = "LTC"
 	OutUTXO.Spent = false

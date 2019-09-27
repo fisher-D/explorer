@@ -19,12 +19,12 @@ type Txs struct {
 	Currency string `json:"currency"`
 }
 type UTXO struct {
-	Index    uint32
-	TxID     string
-	Address  string
-	Value    uint64
-	Currency string
-	Spent    bool
+	Index    uint32 `json:"index"`
+	Utxo     string `json:"utxo"`
+	Address  string `json:"address"`
+	Value    uint64 `json:"value"`
+	Currency string `json:"currency"`
+	Spent    bool   `json:"spent"`
 }
 type Tx struct {
 	Txid      string     `json:"txid"`

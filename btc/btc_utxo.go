@@ -33,7 +33,9 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	}
 	log.Print("Insert new UTXOs")
 	for _, i := range Store {
-		UTXOCollection.Remove(i)
+		//TODO
+		//Build Uinque Index
+		//UTXOCollection.Remove(i)
 		err := UTXOCollection.Insert(i)
 		if err != nil {
 			fmt.Println("Fuck Store")
@@ -49,7 +51,7 @@ func VinUTXO(Vi *s.Vin) *s.UTXO {
 	}
 	InUTXO.Address = Vi.Address
 	InUTXO.Index = Vi.Index
-	InUTXO.TxID = Vi.Hash
+	InUTXO.Utxo = Vi.Hash
 	InUTXO.Value = Vi.Value
 	InUTXO.Currency = "BTC"
 	//InUTXO.Spent = nil
@@ -63,7 +65,7 @@ func VoutUTXO(Vo *s.VoutNew, txid string) *s.UTXO {
 	OutUTXO.Address = Vo.Addr
 	OutUTXO.Index = Vo.Index
 	//OutUTXO.Spent = false
-	OutUTXO.TxID = txid
+	OutUTXO.Utxo = txid
 	OutUTXO.Value = Vo.Value
 	OutUTXO.Currency = "BTC"
 	return OutUTXO
