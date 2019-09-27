@@ -103,6 +103,7 @@ func CatchUpBlockss() string {
 	blockCollection := Database.C("blocks")
 	start, end := CalaulateTime(blockCollection)
 	for i := start; i <= end; i++ {
+		//for i := int64(540000); i <= int64(560000); i++ {
 		hash := GetbtcHashRPC(i)
 		blocks := GetBlocks(hash)
 		log.Println("Process Block With Height: ", i, "; And Blocks Hash :", hash)

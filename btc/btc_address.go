@@ -13,6 +13,7 @@ func GetAddress(time uint64, in []*s.UTXO, out []*s.UTXO, Database *mgo.Database
 		FinishAddress(time, predata, addressCollection)
 	}
 	for _, k := range out {
+		//fmt.Println(k)
 		predata1 := VoutInfo(k)
 		FinishAddress(time, predata1, addressCollection)
 	}
@@ -32,21 +33,30 @@ func VinInfo(InUTXO *s.UTXO) *s.Address {
 	Txi.Txid = InUTXO.Utxo
 	Txi.Value = InUTXO.Value
 	Txi.Currency = "BTC"
-	InUTXO.Spent = true
+	InUTXO.Spent = "true"
+	Txi.Spent = "Ture"
 	Txis = append(Txis, Txi)
 	Addre.Txs = Txis
 	return Addre
 }
 
 func VoutInfo(OutUTXO *s.UTXO) *s.Address {
+	if OutUTXO == nil {
+		return nil
+	}
+	if OutUTXO.Address == "" {
+		return nil
+	}
 	var Txi s.Txs
 	var Txis []s.Txs
 	Addre := new(s.Address)
+	//fmt.Println(OutUTXO.Address, "1111111111111111111")
 	Txi.Index = OutUTXO.Index
 	Txi.Txid = OutUTXO.Utxo
 	Txi.Value = OutUTXO.Value
 	Txi.Currency = "BTC"
-	OutUTXO.Spent = false
+	OutUTXO.Spent = "false"
+	Txi.Spent = "False"
 	Addre.Address = OutUTXO.Address
 	Txis = append(Txis, Txi)
 	Addre.Txs = Txis
@@ -55,7 +65,7 @@ func VoutInfo(OutUTXO *s.UTXO) *s.Address {
 
 func FillParas(addreinfo *s.Address) *s.Address {
 	for _, k := range addreinfo.Txs {
-		if k.Spent != true {
+		if k.Spent != "true" {
 			addreinfo.TotalRecCount++
 			addreinfo.TotalReceived = +k.Value
 		} else {
@@ -82,6 +92,7 @@ func UpdateAddress(Time uint64, olds s.Address, news *s.Address) *s.Address {
 	news.FirstSeen = olds.FirstSeen
 	news.LastSeen = Time
 	for _, k := range olds.Txs {
+		//	fmt.Println(k.Spent)
 		news.Txs = append(news.Txs, k)
 	}
 	res := FillParas(news)

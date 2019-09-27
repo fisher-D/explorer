@@ -1,7 +1,6 @@
 package btc
 
 import (
-	"fmt"
 	"log"
 
 	s "github.com/GGBTC/explorer/service"
@@ -29,16 +28,19 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	UTXOCollection := Database.C("utxo")
 	log.Print("Remove used UTXOs")
 	for _, r := range Remove {
+		//r.Spent = ""
 		UTXOCollection.Remove(r)
 	}
 	log.Print("Insert new UTXOs")
 	for _, i := range Store {
+		//i.Spent = ""
 		//TODO
 		//Build Uinque Index
 		//UTXOCollection.Remove(i)
+		//fmt.Println(i)
 		err := UTXOCollection.Insert(i)
 		if err != nil {
-			fmt.Println("Fuck Store")
+			log.Println("No need to store nil infor")
 		}
 	}
 	return Remove, Store
@@ -46,7 +48,11 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 
 func VinUTXO(Vi *s.Vin) *s.UTXO {
 	InUTXO := new(s.UTXO)
-	if Vi.Address != "" {
+	//UTXO
+	//	fmt.Println(Vi.Currency, "2222222222222")
+	//Only Handle BTC UTXO
+	if Vi.Address == "" || Vi.Currency != "BTC" {
+		log.Println("Do not Hand USDT OR OMNI,Vin")
 		return nil
 	}
 	InUTXO.Address = Vi.Address
@@ -61,6 +67,10 @@ func VinUTXO(Vi *s.Vin) *s.UTXO {
 }
 
 func VoutUTXO(Vo *s.VoutNew, txid string) *s.UTXO {
+	if Vo.Currency != "BTC" {
+		log.Println("Do not Hand USDT OR OMNI,Vout")
+		return nil
+	}
 	OutUTXO := new(s.UTXO)
 	OutUTXO.Address = Vo.Addr
 	OutUTXO.Index = Vo.Index

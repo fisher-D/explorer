@@ -15,7 +15,7 @@ type Txs struct {
 	Index    uint32 `json:"index"`
 	Txid     string `json:"txid"`
 	Value    uint64 `json:"value"`
-	Spent    bool   `json:"spent"`
+	Spent    string `json:"spent"`
 	Currency string `json:"currency"`
 }
 type UTXO struct {
@@ -24,7 +24,7 @@ type UTXO struct {
 	Address  string `json:"address"`
 	Value    uint64 `json:"value"`
 	Currency string `json:"currency"`
-	Spent    bool   `json:"spent"`
+	Spent    string `json:"spent,omitempty"`
 }
 type Tx struct {
 	Txid      string     `json:"txid"`
@@ -44,7 +44,7 @@ type VoutNew struct {
 	Addr     string `json:"address"`
 	Value    uint64 `json:"value"`
 	Currency string `json:"currency"`
-	Spent    bool   `json:"spent"`
+	Spent    string `json:"spent"`
 }
 
 type Vin struct {
@@ -55,7 +55,7 @@ type Vin struct {
 	Coinbase string `json:"coinbase,omitempty"`
 	Sequence int64  `json:"sequence,omitempty"`
 	Currency string `json:"currency"`
-	Spent    bool   `json:"spent"`
+	Spent    string `json:"spent"`
 }
 
 type TxOld struct {
