@@ -100,12 +100,48 @@ func GetLastBlock(w http.ResponseWriter, req *http.Request) {
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
 		mongo.GetConnection("BTC", "blocks")
-		result := mongo.GetBlockHeight()
+		result := mongo.GetCountNumber()
 		json.NewEncoder(w).Encode(result)
 	} else if coinName == "ltc" {
 		mongo := getdata.Mongo{}
 		mongo.GetConnection("LTC", "blocks")
-		result := mongo.GetBlockHeight()
+		result := mongo.GetCountNumber()
+		json.NewEncoder(w).Encode(result)
+	}
+}
+func GetLastTx(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	//params := mux.Vars(req)
+	params := mux.Vars(req)
+	coinName := params["coinName"]
+	if coinName == "btc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("BTC", "txs")
+		result := mongo.GetCountNumber()
+		json.NewEncoder(w).Encode(result)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "txs")
+		result := mongo.GetCountNumber()
+		json.NewEncoder(w).Encode(result)
+	}
+}
+func GetUnSpnetNumber(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	//params := mux.Vars(req)
+	params := mux.Vars(req)
+	coinName := params["coinName"]
+	if coinName == "btc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("BTC", "utxo")
+		result := mongo.GetCountNumber()
+		json.NewEncoder(w).Encode(result)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "utxo")
+		result := mongo.GetCountNumber()
 		json.NewEncoder(w).Encode(result)
 	}
 }
@@ -192,6 +228,8 @@ func main() {
 	router.HandleFunc("/unspent/{coinName}/{id}", GetAddressUnSpent).Methods("GET")
 	//Done
 	router.HandleFunc("/latestblock/{coinName}", GetLastBlock).Methods("GET")
+	router.HandleFunc("/latesttx/{coinName}", GetLastTx).Methods("GET")
+	router.HandleFunc("/latestutxo/{coinName}", GetUnSpnetNumber).Methods("GET")
 	//Done
 	router.HandleFunc("/recent/tx/{coinName}/{page}", GetRecentTranscation).Methods("GET")
 	//Done

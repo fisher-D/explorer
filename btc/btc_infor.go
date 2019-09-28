@@ -1,36 +1,38 @@
 package btc
 
 import (
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"strconv"
+	"net/url"
+	"os"
 )
 
-type ChainInfor struct {
-	CurrentPrice uint64 `json:"currentprice"`
-	MarketPrice  uint64 `json:"marketprice"`
-	TxAmount     uint64 `json:"txAmount"`
-	TotalPrice   uint64 `json:"totalPirce"`
-	Height       uint64 `json:"height"`
-	Difficulty   uint64 `json:"difficult"`
-}
-
-//GetLastBitcoinPrice Get BTC Pirce
-func GetLastBitcoinPrice() (price float64, err error) {
-	resp, err := http.Get("https://api.bitcoinaverage.com/ticker/global/USD/last")
+func GetLastBitCoinPrice() {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest", nil)
 	if err != nil {
-		return
+		log.Print(err)
+		os.Exit(1)
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	price, err = strconv.ParseFloat(string(body), 10)
-	return
-}
 
-// func main() {
-// 	p, _ := GetLastBitcoinPrice()
-// 	fmt.Printf("%v", p)
-// }
+	q := url.Values{}
+	q.Add("start", "1")
+	q.Add("limit", "1")
+	q.Add("convert", "USD")
+
+	req.Header.Set("Accepts", "application/json")
+	req.Header.Add("X-CMC_PRO_API_KEY", "1c330b87-01ff-4d03-8b95-699e6d5e903a")
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request to server")
+		os.Exit(1)
+	}
+	fmt.Println(resp.Status)
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(respBody))
+
+}

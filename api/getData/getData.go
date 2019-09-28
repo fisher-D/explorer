@@ -94,12 +94,13 @@ func (mongo Mongo) GetAccountInfoByAddress(address string) (outAccount s.Address
 	return res
 }
 
-func (mongo Mongo) GetBlockHeight() int {
+func (mongo Mongo) GetCountNumber() int {
 	//var res AccountInfo
 	Number, _ := client.Count()
 	res := Number - 1
 	return res
 }
+
 func (mongo Mongo) GetUnSpent(address string) []s.UTXO {
 	var Unspent []s.UTXO
 	client.Find(bson.M{"address": address}).All(&Unspent)
