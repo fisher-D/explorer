@@ -8,12 +8,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/GGBTC/explorer/service"
+	s "github.com/GGBTC/explorer/service"
 )
 
 func GetLastBitCoinPrice() string {
@@ -39,7 +38,7 @@ func GetLastBitCoinPrice() string {
 		os.Exit(1)
 	}
 	//fmt.Println(resp.Status)
-	var infor BTCInfo
+	var infor s.BTCInfo
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	json.Unmarshal(respBody, &infor)
 	//币值
@@ -49,13 +48,13 @@ func GetLastBitCoinPrice() string {
 	MarketCap := infor.Data[0].Quote.USD.MarketCap
 	MaketAmount := infor.Data[0].Quote.USD.Volume24H
 	Amou := MaketAmount / Price
-	var Info Information
+	var Info s.Information
 	Info.Price = Price
 	Info.Amount = Amount
 	Info.MarketCap = MarketCap
 	Info.MarketAmount = Amou
-	service.GetMongo(mongourl)
-	Database := service.GlobalS.DB("BTC")
+	s.GetMongo(mongourl)
+	Database := s.GlobalS.DB("BTC")
 	Height, Difficult := GetBlockInfo(Database)
 	Info.Height = Height
 	Info.Difficult = Difficult
@@ -77,53 +76,8 @@ func GetBlockInfo(Database *mgo.Database) (int, uint64) {
 	} else {
 		height = h - 1
 	}
-	var blockinfo service.Blocks
+	var blockinfo s.Blocks
 	boll.Find(bson.M{"height": height}).One(&blockinfo)
 	Diff := blockinfo.Difficulty
 	return height, Diff
-}
-
-type Information struct {
-	Price        float64
-	MarketCap    float64
-	MarketAmount float64
-	Amount       int
-	Height       int
-	Difficult    uint64
-}
-type BTCInfo struct {
-	Status struct {
-		Timestamp    time.Time   `json:"timestamp"`
-		ErrorCode    int         `json:"error_code"`
-		ErrorMessage interface{} `json:"error_message"`
-		Elapsed      int         `json:"elapsed"`
-		CreditCount  int         `json:"credit_count"`
-		Notice       interface{} `json:"notice"`
-	} `json:"status"`
-	Data []struct {
-		ID                int         `json:"id"`
-		Name              string      `json:"name"`
-		Symbol            string      `json:"symbol"`
-		Slug              string      `json:"slug"`
-		NumMarketPairs    int         `json:"num_market_pairs"`
-		DateAdded         time.Time   `json:"date_added"`
-		Tags              []string    `json:"tags"`
-		MaxSupply         int         `json:"max_supply"`
-		CirculatingSupply int         `json:"circulating_supply"`
-		TotalSupply       int         `json:"total_supply"`
-		Platform          interface{} `json:"platform"`
-		CmcRank           int         `json:"cmc_rank"`
-		LastUpdated       time.Time   `json:"last_updated"`
-		Quote             struct {
-			USD struct {
-				Price            float64   `json:"price"`
-				Volume24H        float64   `json:"volume_24h"`
-				PercentChange1H  float64   `json:"percent_change_1h"`
-				PercentChange24H float64   `json:"percent_change_24h"`
-				PercentChange7D  float64   `json:"percent_change_7d"`
-				MarketCap        float64   `json:"market_cap"`
-				LastUpdated      time.Time `json:"last_updated"`
-			} `json:"USD"`
-		} `json:"quote"`
-	} `json:"data"`
 }

@@ -123,3 +123,8 @@ func (mongo Mongo) GetRecentBlock(pageNum int) (Block []s.Blocks) {
 	client.Find(bson.M{}).Sort("-height").Limit(limitNum).Skip(skipNum).All(&res)
 	return res
 }
+func (mongo Mongo) Getinfo() (Block s.Information) {
+	var res s.Information
+	client.Find(bson.M{}).Sort("-height").Limit(1).One(&res)
+	return res
+}

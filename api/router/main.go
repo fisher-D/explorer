@@ -127,6 +127,24 @@ func GetLastTx(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(result)
 	}
 }
+func GetInformation(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	//params := mux.Vars(req)
+	params := mux.Vars(req)
+	coinName := params["coinName"]
+	if coinName == "btc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("BTC", "info")
+		result := mongo.Getinfo()
+		json.NewEncoder(w).Encode(result)
+	} else if coinName == "ltc" {
+		mongo := getdata.Mongo{}
+		mongo.GetConnection("LTC", "info")
+		result := mongo.Getinfo()
+		json.NewEncoder(w).Encode(result)
+	}
+}
 func GetUnSpnetNumber(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
@@ -230,6 +248,7 @@ func main() {
 	router.HandleFunc("/latestblock/{coinName}", GetLastBlock).Methods("GET")
 	router.HandleFunc("/latesttx/{coinName}", GetLastTx).Methods("GET")
 	router.HandleFunc("/latestutxo/{coinName}", GetUnSpnetNumber).Methods("GET")
+	router.HandleFunc("/blockinfo/{coinName}", GetInformation).Methods("GET")
 	//Done
 	router.HandleFunc("/recent/tx/{coinName}/{page}", GetRecentTranscation).Methods("GET")
 	//Done
