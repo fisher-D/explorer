@@ -115,13 +115,13 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 				txi.Address = txijson.(map[string]interface{})["address"].(string)
 				txi.Value = service.FloatToUint(pval)
 				txi.Currency = "LTC"
-				txi.Spent = true
+				txi.Spent = "true"
 			} else {
 				prevout, _ := GetVoutNewRPC(txi.Hash, txi.Index)
 				txi.Address = prevout.Addr
 				txi.Value = prevout.Value
 				txi.Currency = "LTC"
-				txi.Spent = true
+				txi.Spent = "true"
 			}
 
 			total_tx_in += uint64(txi.Value)
@@ -132,7 +132,7 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 			txi.Sequence, _ = txijson.(map[string]interface{})["sequence"].(json.Number).Int64()
 			tx.Vin = append(tx.Vin, txi)
 			txi.Currency = "LTC"
-			txi.Spent = true
+			txi.Spent = "true"
 		}
 	}
 	for _, txojson := range txjson["vout"].([]interface{}) {
@@ -147,7 +147,7 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 				txo.Addr = txodata[0].(string)
 				txo.Currency = "LTC"
 				//txo.Currency = "LTC"
-				txo.Spent = false
+				txo.Spent = "false"
 			} else {
 				txo.Addr = ""
 			}

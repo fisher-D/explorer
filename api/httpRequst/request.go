@@ -47,7 +47,6 @@ func (mongo Mongo) GetBlockInfoByKeyValue(key string, value string) (block s.Blo
 		return blockResult
 	}
 }
-
 func (mongo Mongo) GetTransCationInfoByHash(value string) (transCationInfo s.Tx) {
 	var res s.Tx
 	client.Find(bson.M{"hash": value}).One(&res)
