@@ -100,9 +100,9 @@ func CatchUpBlockss() string {
 	s.GetMongo(mongourl)
 	Database := s.GlobalS.DB("BTC")
 	blockCollection := Database.C("blocks")
-	//start, end := CalaulateTime(blockCollection)
-	for i := 1; i <= 66; i++ {
-		//for i := int64(540000); i <= int64(560000); i++ {
+	start, end := CalaulateTime(blockCollection)
+	//for i := 1; i <= 66; i++ {
+	for i := start; i <= end; i++ {
 		hash := GetbtcHashRPC(int64(i))
 		blocks := GetBlocks(hash)
 		log.Println("Process Block With Height: ", i, "; And Blocks Hash :", hash)

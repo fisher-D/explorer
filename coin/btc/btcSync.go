@@ -28,7 +28,7 @@ func UpdateInformation() {
 	for {
 		resu := btc.GetLastBitCoinPrice()
 		if resu == "Success" {
-			time.Sleep(time.Duration(60) * time.Second)
+			time.Sleep(time.Duration(360) * time.Second)
 		}
 	}
 

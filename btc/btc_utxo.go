@@ -15,37 +15,39 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	var Txtar s.Tx
 	query := bson.M{"txid": txid}
 	TxCollection.Find(query).One(&Txtar)
-	var Remove []*s.UTXO
-	var Store []*s.UTXO
-	for _, k := range Txtar.Vin {
-		listi := VinUTXO(k)
-		Remove = append(Remove, listi)
-	}
-	//fmt.Println(Remove)
-	for _, k := range Txtar.Vout {
-		listo := VoutUTXO(k, txid)
-		Store = append(Store, listo)
-	}
-	//	fmt.Println(Store)
+	//Add uinque Index for Collection UTXO
 	utxoIndex := mgo.Index{
 		Key:    []string{"utxo"},
 		Unique: true,
 	}
 	UTXOCollection := Database.C("utxos")
 	UTXOCollection.EnsureIndex(utxoIndex)
-	log.Print("Remove used UTXOs")
+	Remove := RmoveProcss(Txtar, UTXOCollection)
+	Store := InsertProcess(txid, Txtar, UTXOCollection)
+	return Remove, Store
+}
+
+func RmoveProcss(Txtar s.Tx, UTXOCollection *mgo.Collection) []*s.UTXO {
+	var Remove []*s.UTXO
+	for _, k := range Txtar.Vin {
+		listi := VinUTXO(k)
+		Remove = append(Remove, listi)
+	}
 	for _, r := range Remove {
 		if r != nil {
 			UTXOCollection.Remove(r)
 		}
 	}
-	log.Print("Insert new UTXOs")
+	log.Print("Remove used UTXOs")
+	return Remove
+}
+func InsertProcess(txid string, Txtar s.Tx, UTXOCollection *mgo.Collection) []*s.UTXO {
+	var Store []*s.UTXO
+	for _, k := range Txtar.Vout {
+		listo := VoutUTXO(k, txid)
+		Store = append(Store, listo)
+	}
 	for _, i := range Store {
-		//i.Spent = ""
-		//TODO
-		//Build Uinque Index
-		//UTXOCollection.Remove(i)
-		//fmt.Println(i)
 		if i != nil {
 			err := UTXOCollection.Insert(i)
 			if err != nil {
@@ -53,14 +55,11 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 			}
 		}
 	}
-	return Remove, Store
+	log.Print("Insert new UTXOs")
+	return Store
 }
-
 func VinUTXO(Vi *s.Vin) *s.UTXO {
 	InUTXO := new(s.UTXO)
-	//UTXO
-	//fmt.Println(Vi.Currency, "2222222222222")
-	//Only Handle BTC UTXO
 	if Vi.Address == "" || Vi.Currency != "BTC" {
 		log.Println("Do not Hand USDT OR OMNI,Vin")
 		return nil
@@ -70,8 +69,6 @@ func VinUTXO(Vi *s.Vin) *s.UTXO {
 	InUTXO.Utxo = Vi.Hash
 	InUTXO.Value = Vi.Value
 	InUTXO.Currency = "BTC"
-	//InUTXO.Spent = nil
-	//InUTXO.Spent = true
 	return InUTXO
 
 }
@@ -84,7 +81,6 @@ func VoutUTXO(Vo *s.VoutNew, txid string) *s.UTXO {
 	OutUTXO := new(s.UTXO)
 	OutUTXO.Address = Vo.Addr
 	OutUTXO.Index = Vo.Index
-	//OutUTXO.Spent = false
 	OutUTXO.Utxo = txid
 	OutUTXO.Value = Vo.Value
 	OutUTXO.Currency = "BTC"

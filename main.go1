@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/GGBTC/explorer/btc"
 	s "github.com/GGBTC/explorer/service"
@@ -10,7 +11,7 @@ import (
 
 const (
 	starttime = 0
-	endtime   = 32
+	endtime   = 1400
 )
 const (
 	URL       = s.BTCURL
@@ -20,12 +21,13 @@ const (
 )
 
 func main() {
+	//var wg sync.WaitGroup
 	jobCh := genJob(starttime, endtime)
-	//wg.Add(1)
+
 	workerPool(4, jobCh)
-	//time.Sleep(time.Duration(1) * time.Second)
+	time.Sleep(time.Duration(1) * time.Second)
 	//Use this Select to hold the main process
-	fmt.Println("good")
+	//select {}
 
 }
 
@@ -37,7 +39,6 @@ func genJob(star int, n int) <-chan int {
 		}
 		close(jobCh)
 	}()
-	//	fmt.Println("len--------------", len(jobCh))
 	return jobCh
 }
 
@@ -45,13 +46,13 @@ func workerPool(n int, jobCh <-chan int) {
 	for i := 0; i < n; i++ {
 		go worker(i, jobCh)
 	}
-	//return true
 }
 
 func worker(id int, jobCh <-chan int) {
+
 	for job := range jobCh {
-		CatchUpBlock(job)
-		//	fmt.Println("Processer:", id, "  Result", job)
+		//	CatchUpBlock(job)
+		fmt.Println("Processer:", id, "  Result", job)
 	}
 }
 func CatchUpBlock(start int) string {
