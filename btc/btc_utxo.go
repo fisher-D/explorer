@@ -8,6 +8,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+//TODO
+//将之拆分为两个并行的方法
 func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	TxCollection := Database.C("txs")
 	var Txtar s.Tx
@@ -25,7 +27,12 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 		Store = append(Store, listo)
 	}
 	//	fmt.Println(Store)
-	UTXOCollection := Database.C("utxo")
+	utxoIndex := mgo.Index{
+		Key:    []string{"utxo"},
+		Unique: true,
+	}
+	UTXOCollection := Database.C("utxos")
+	UTXOCollection.EnsureIndex(utxoIndex)
 	log.Print("Remove used UTXOs")
 	for _, r := range Remove {
 		if r != nil {
@@ -52,7 +59,7 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 func VinUTXO(Vi *s.Vin) *s.UTXO {
 	InUTXO := new(s.UTXO)
 	//UTXO
-	//	fmt.Println(Vi.Currency, "2222222222222")
+	//fmt.Println(Vi.Currency, "2222222222222")
 	//Only Handle BTC UTXO
 	if Vi.Address == "" || Vi.Currency != "BTC" {
 		log.Println("Do not Hand USDT OR OMNI,Vin")

@@ -6,6 +6,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+//TODO
+//进行并发设计
 func GetAddress(time uint64, in []*s.UTXO, out []*s.UTXO, Database *mgo.Database) {
 	addressCollection := Database.C("address")
 	for _, k := range in {
@@ -41,6 +43,9 @@ func VinInfo(InUTXO *s.UTXO) *s.Address {
 }
 
 func VoutInfo(OutUTXO *s.UTXO) *s.Address {
+	//TODO
+	//尝试进行并发判断
+	//梳理逻辑，以删除第一个判断
 	if OutUTXO == nil {
 		return nil
 	}

@@ -18,6 +18,12 @@ import (
 func GetLastBitCoinPrice() string {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest", nil)
+	//CallBTCRPC(service.BTCURL, "gettxoutsetinfo", 1, []interface{}{})
+	//RPC也可以获取想改信息
+	//bestblock:0000000000000000000eca0a240f1f5a45aea073254c2feb05cfd901b99e0723
+	//bytes_serialized:2876856559
+	//hash_serialized:601c063c70f9a726eb970d4b3376890fa282c1b0916d00f60547e01a54f8a5de
+	//height:597133 total_amount:17963992.32206827 transactions:36210239 txouts:62309031
 	if err != nil {
 		log.Print(err)
 		os.Exit(1)

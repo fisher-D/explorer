@@ -20,6 +20,6 @@ const (
 	//MongoDB
 	//Mongourl = "47.105.199.88:27017"
 	Mongourl = "localhost:27017"
-
+	//API_Key
 	APIKEY = "1c330b87-01ff-4d03-8b95-699e6d5e903a"
 )

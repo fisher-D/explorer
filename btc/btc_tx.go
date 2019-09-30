@@ -24,6 +24,8 @@ func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 			} else {
 				Time = result.BlockTime
 			}
+			//TODO
+			//将拆分的方法并行
 			Vin, Vout := BTCUnspent(k, Database)
 			GetAddress(Time, Vin, Vout, Database)
 		}
