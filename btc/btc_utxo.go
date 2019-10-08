@@ -16,12 +16,12 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	query := bson.M{"txid": txid}
 	TxCollection.Find(query).One(&Txtar)
 	//Add uinque Index for Collection UTXO
-	utxoIndex := mgo.Index{
-		Key:    []string{"utxo"},
-		Unique: true,
-	}
+	// utxoIndex := mgo.Index{
+	// 	Key:    []string{"utxo"},
+	// 	Unique: true,
+	// }
 	UTXOCollection := Database.C("utxos")
-	UTXOCollection.EnsureIndex(utxoIndex)
+	//UTXOCollection.EnsureIndex(utxoIndex)
 	Remove := RmoveProcss(Txtar, UTXOCollection)
 	Store := InsertProcess(txid, Txtar, UTXOCollection)
 	return Remove, Store
@@ -49,10 +49,11 @@ func InsertProcess(txid string, Txtar s.Tx, UTXOCollection *mgo.Collection) []*s
 	}
 	for _, i := range Store {
 		if i != nil {
-			err := UTXOCollection.Insert(i)
-			if err != nil {
-				log.Println("No need to store nil infor")
-			}
+			UTXOCollection.Insert(i)
+			//log.Println(i)
+			//if err != nil {
+			//	log.Println("No need to store nil infor", i)
+			//}
 		}
 	}
 	log.Print("Insert new UTXOs")

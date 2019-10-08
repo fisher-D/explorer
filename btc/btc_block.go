@@ -96,12 +96,13 @@ func CalaulateTime(blockCollection *mgo.Collection) (int64, int64) {
 	return startheight, endheight
 }
 
+//10:50:18
 func CatchUpBlockss() string {
 	s.GetMongo(mongourl)
 	Database := s.GlobalS.DB("BTC")
 	blockCollection := Database.C("blocks")
 	start, end := CalaulateTime(blockCollection)
-	//for i := 1; i <= 66; i++ {
+	//for i := 520000; i <= 520002; i++ {
 	for i := start; i <= end; i++ {
 		hash := GetbtcHashRPC(int64(i))
 		blocks := GetBlocks(hash)

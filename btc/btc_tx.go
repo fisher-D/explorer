@@ -10,6 +10,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+//10:55:37
 func CatchUpTx(txidArray []string, Database *mgo.Database) bool {
 	TxCollection := Database.C("txs")
 	var Time uint64
