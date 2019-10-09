@@ -40,7 +40,7 @@ func GetClearTx(txid string) (tx *service.Tx, err error) {
 	if txid == GenesisTx {
 		return
 	}
-	res_tx, err := CallZECRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+	res_tx, err := CallZECRPC(URL, "gettransaction", 1, []interface{}{txid, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}

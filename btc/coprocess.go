@@ -39,15 +39,8 @@ func workerstr(id int, jobChstr <-chan string, wg *sync.WaitGroup, Database *mgo
 	//count := 0
 	defer wg.Done()
 	for k := range jobChstr {
-		//count++
-		//res := op
-		//	pkgs.CatchUpTx()
-		//log.Println(res)
-		CatchUpTx1(k, Database)
-		//log.Println("txid:", k, "   Process:", id, "   Times:", count)
-		//return res
+		GetClearTx(k)
 	}
-	//return true
 }
 
 func CatchUpTx1(txidArray string, Database *mgo.Database) {

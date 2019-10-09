@@ -20,8 +20,9 @@ func BTCUnspent(txid string, Database *mgo.Database) ([]*s.UTXO, []*s.UTXO) {
 	// 	Key:    []string{"utxo"},
 	// 	Unique: true,
 	// }
-	UTXOCollection := Database.C("utxos")
 	//UTXOCollection.EnsureIndex(utxoIndex)
+	UTXOCollection := Database.C("utxos")
+
 	Remove := RmoveProcss(Txtar, UTXOCollection)
 	Store := InsertProcess(txid, Txtar, UTXOCollection)
 	return Remove, Store
