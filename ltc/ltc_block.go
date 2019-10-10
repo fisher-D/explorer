@@ -7,15 +7,18 @@ import (
 	"net/http"
 	"strings"
 
-	s "github.com/GGBTC/explorer/service"
 	"gopkg.in/mgo.v2"
+
 	"gopkg.in/mgo.v2/bson"
+
+	s "github.com/GGBTC/explorer/service"
 )
 
 const (
 	URL       = s.LTCURL
 	GenesisTx = s.LTCGenesisTx
 	mongourl  = s.Mongourl
+	apikey    = s.LTCAPIKEY
 )
 
 func GetltcCountRPC() int64 {
@@ -23,6 +26,8 @@ func GetltcCountRPC() int64 {
 	if err != nil {
 		fmt.Println("Error")
 	}
+	//fmt.Println(res)
+	//	fmt.Println("======================4")
 	count, _ := res["result"].(json.Number).Int64()
 	return count
 }
@@ -33,23 +38,24 @@ func GetltcHashRPC(height int64) string {
 		fmt.Println("error")
 	}
 	tar := res["result"].(string)
+	//	fmt.Println(tar)
 	return tar
 }
 
 func GetBlocks(hash string) s.Blocks {
-	res, err := s.CallBitcoinRPC(URL, "getblock", 1, []interface{}{hash})
+	res, err := CallLTCRPC(URL, "getblock", 1, []interface{}{hash})
 	if err != nil {
 		fmt.Println("Error")
 	}
 	rawInfo := res["result"].(map[string]interface{})
 	//	fmt.Println(rawInfo)
 	data, _ := json.Marshal(rawInfo)
-	var ltcb s.Blocks
-	json.Unmarshal(data, &ltcb)
-	ltcb.NTx = len(ltcb.Tx)
+	var ltcd s.Blocks
+	json.Unmarshal(data, &ltcd)
+	ltcd.NTx = len(ltcd.Tx)
 	Difficulty, _ := rawInfo["difficulty"].(json.Number).Float64()
-	ltcb.Difficulty = uint64(Difficulty)
-	return ltcb
+	ltcd.Difficulty = uint64(Difficulty)
+	return ltcd
 
 }
 
@@ -71,7 +77,6 @@ func CallLTCRPC(address string, method string, id interface{}, params []interfac
 	}
 	defer resp.Body.Close()
 	var result map[string]interface{}
-	//var result map[string]interface{}
 	decoder := json.NewDecoder(resp.Body)
 	decoder.UseNumber()
 	err = decoder.Decode(&result)
@@ -85,23 +90,21 @@ func CallLTCRPC(address string, method string, id interface{}, params []interfac
 func CalaulateTime(blockCollection *mgo.Collection) (int64, int64) {
 	var target s.Blocks
 	blockCollection.Find(bson.M{}).Sort("-height").Limit(1).One(&target)
-	//Optional Approach
-	//startheight, _ := blockCollection.Count()
 	blockCollection.Remove(target)
 	startheight := int64(target.Height)
 	endheight := GetltcCountRPC()
 	return startheight, endheight
 }
 
+//10:50:18
 func CatchUpBlockss() string {
 	s.GetMongo(mongourl)
 	Database := s.GlobalS.DB("LTC")
 	blockCollection := Database.C("blocks")
-	//txCollection := Database.C("txs")
-	//utxoCollection := Database.C("utxo")
-	start, end := CalaulateTime(blockCollection)
-	for i := start; i <= end; i++ {
-		hash := GetltcHashRPC(i)
+	//start, end := CalaulateTime(blockCollection)
+	for i := 520000; i <= 520001; i++ {
+		//for i := start; i <= end; i++ {
+		hash := GetltcHashRPC(int64(i))
 		blocks := GetBlocks(hash)
 		log.Println("Process Block With Height: ", i, "; And Blocks Hash :", hash)
 		blockCollection.Insert(blocks)
@@ -112,5 +115,4 @@ func CatchUpBlockss() string {
 		}
 	}
 	return "Success"
-
 }

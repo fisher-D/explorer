@@ -18,7 +18,7 @@ const (
 	URL       = s.BTCURL
 	GenesisTx = s.BTCGenesisTx
 	mongourl  = s.Mongourl
-	apikey    = s.APIKEY
+	apikey    = s.BTCAPIKEY
 )
 
 func GetbtcCountRPC() int64 {

@@ -6,6 +6,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+//TODO
+//进行并发设计
 func GetAddress(time uint64, in []*s.UTXO, out []*s.UTXO, Database *mgo.Database) {
 	addressCollection := Database.C("address")
 	for _, k := range in {
@@ -13,6 +15,7 @@ func GetAddress(time uint64, in []*s.UTXO, out []*s.UTXO, Database *mgo.Database
 		FinishAddress(time, predata, addressCollection)
 	}
 	for _, k := range out {
+		//fmt.Println(k)
 		predata1 := VoutInfo(k)
 		FinishAddress(time, predata1, addressCollection)
 	}
@@ -33,20 +36,32 @@ func VinInfo(InUTXO *s.UTXO) *s.Address {
 	Txi.Value = InUTXO.Value
 	Txi.Currency = "LTC"
 	InUTXO.Spent = "true"
+	Txi.Spent = "Ture"
 	Txis = append(Txis, Txi)
 	Addre.Txs = Txis
 	return Addre
 }
 
 func VoutInfo(OutUTXO *s.UTXO) *s.Address {
+	//TODO
+	//尝试进行并发判断
+	//梳理逻辑，以删除第一个判断
+	if OutUTXO == nil {
+		return nil
+	}
+	if OutUTXO.Address == "" {
+		return nil
+	}
 	var Txi s.Txs
 	var Txis []s.Txs
 	Addre := new(s.Address)
+	//fmt.Println(OutUTXO.Address, "1111111111111111111")
 	Txi.Index = OutUTXO.Index
 	Txi.Txid = OutUTXO.Utxo
 	Txi.Value = OutUTXO.Value
 	Txi.Currency = "LTC"
 	OutUTXO.Spent = "false"
+	Txi.Spent = "False"
 	Addre.Address = OutUTXO.Address
 	Txis = append(Txis, Txi)
 	Addre.Txs = Txis
@@ -82,6 +97,7 @@ func UpdateAddress(Time uint64, olds s.Address, news *s.Address) *s.Address {
 	news.FirstSeen = olds.FirstSeen
 	news.LastSeen = Time
 	for _, k := range olds.Txs {
+		//	fmt.Println(k.Spent)
 		news.Txs = append(news.Txs, k)
 	}
 	res := FillParas(news)
