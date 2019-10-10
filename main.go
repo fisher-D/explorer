@@ -1,9 +1,12 @@
 package main
 
 import (
-	"github.com/GGBTC/explorer/ltc"
+	"log"
+
+	zec "github.com/GGBTC/explorer/zcash"
 )
 
 func main() {
-	ltc.GetLastBitCoinPrice()
+	height := zec.GetzecCountRPC()
+	log.Println(height)
 }
