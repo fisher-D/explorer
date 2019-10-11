@@ -102,7 +102,7 @@ func CatchUpBlockss() string {
 	Database := s.GlobalS.DB("BTC")
 	blockCollection := Database.C("blocks")
 	start, end := CalaulateTime(blockCollection)
-	//for i := 520000; i <= 520002; i++ {
+	//for i := 1; i <= 10; i++ {
 	for i := start; i <= end; i++ {
 		hash := GetbtcHashRPC(int64(i))
 		blocks := GetBlocks(hash)

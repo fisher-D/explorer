@@ -10,14 +10,14 @@ import (
 func main() {
 	//pkgs.CatchUpBlocks()
 	//	service.GetMongo(mongourl)
-	go UpdateInformation()
+	//go UpdateInformation()
 	KeepRunning()
 }
 func KeepRunning() {
 	for {
 		res := btc.CatchUpBlockss()
 		if res == "Success" {
-			time.Sleep(time.Duration(60) * time.Second)
+			time.Sleep(time.Duration(5) * time.Second)
 		}
 	}
 

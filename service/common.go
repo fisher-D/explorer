@@ -1,7 +1,19 @@
 package service
 
-import "time"
+import (
+	"time"
+)
 
+type Status struct {
+	//LastBlockHeight uint64
+	//	TxCount         uint64
+	//AddressCount    uint64
+	//	UTXOcount       uint64
+	//ID        bson.ObjectId `bosn:"id"`
+	Currecny  string `json:"currency"`
+	UtxoBlock uint64 `json:"ublock"`
+	UtxoTx    string `json:"utx"`
+}
 type Address struct {
 	Address        string `json:"address"`
 	Txs            []Txs  `json:"Tx"`
@@ -11,7 +23,7 @@ type Address struct {
 	TotalSent      uint64
 	Balance        uint64
 	FirstSeen      uint64
-	LastSeen       uint64
+	LastSeen       uint64 `json:"lastseen"`
 }
 type Txs struct {
 	Index    uint32 `json:"index"`
@@ -21,6 +33,7 @@ type Txs struct {
 	Currency string `json:"currency"`
 }
 type UTXO struct {
+	//Id       bson.ObjectId `json:"id"        bson:"_id"`
 	Index    uint32 `json:"index"`
 	Utxo     string `json:"utxo"`
 	Address  string `json:"address"`
