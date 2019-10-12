@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/GGBTC/explorer/pkgs"
+
 	getdata "github.com/GGBTC/explorer/api/getData"
 
 	"github.com/gorilla/mux"
@@ -233,6 +235,13 @@ func GetRecentBlocks(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(result)
 	}
 }
+func GetDataBaseInfo(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+	result := pkgs.DataName()
+	json.NewEncoder(w).Encode(result)
+}
+
 func main() {
 	//	Get handle function:
 	router := mux.NewRouter()
@@ -249,6 +258,7 @@ func main() {
 	router.HandleFunc("/latesttx/{coinName}", GetLastTx).Methods("GET")
 	router.HandleFunc("/latestutxo/{coinName}", GetUnSpnetNumber).Methods("GET")
 	router.HandleFunc("/blockinfo/{coinName}", GetInformation).Methods("GET")
+	router.HandleFunc("/database", GetDataBaseInfo).Methods("GET")
 	//Done
 	router.HandleFunc("/recent/tx/{coinName}/{page}", GetRecentTranscation).Methods("GET")
 	//Done
