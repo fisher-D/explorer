@@ -1,12 +1,10 @@
-package main
+package pkgs
 
 import (
-	"fmt"
-
 	s "github.com/GGBTC/explorer/service"
 )
 
-func main() {
+func DataName() []string {
 	//url := "192.168.72.250:27017"
 	s.GetMongo(s.Mongourl)
 	session, _ := s.GlobalS.DatabaseNames()
@@ -16,5 +14,8 @@ func main() {
 			CoinName = append(CoinName, k)
 		}
 	}
-	fmt.Println(CoinName)
+	if len(CoinName) != 0 {
+		return CoinName
+	}
+	return []string{"No DataBase Exist"}
 }

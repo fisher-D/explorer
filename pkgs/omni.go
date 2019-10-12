@@ -5,13 +5,6 @@ import (
 	"strconv"
 )
 
-// func main() {
-// 	//	fmt.Println(1 + 1)
-// 	Omni := "6f6d6e69000000000000001f0000000649534e00"
-// 	res, err := OmniProcesser(Omni)
-// 	fmt.Println(err)
-// 	fmt.Println(res)
-// }
 func OmniProcesser(Omni string) (*OmniTx, error) {
 
 	tar := new(OmniTx)
