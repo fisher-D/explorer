@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	zec "github.com/GGBTC/explorer/zec"
+	ltc "github.com/GGBTC/explorer/ltc"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 
 func Block() {
 	for {
-		res := zec.CatchUpBlocks()
+		res := ltc.CatchUpBlocks()
 		if res == "Success" {
 			time.Sleep(5 * time.Second)
 			log.Println("============Block==============")
@@ -33,7 +33,7 @@ func Block() {
 func Tx() {
 	for {
 		//	defer wg.Done()
-		res := zec.CatchUpTx()
+		res := ltc.CatchUpTx()
 		if res == "Success" {
 			time.Sleep(2 * time.Second)
 			log.Println("==========Transaction==========")
@@ -45,7 +45,7 @@ func Tx() {
 func Price() {
 	for {
 		//	defer wg.Done()
-		res := zec.GetLastBitCoinPrice()
+		res := ltc.GetLastBitCoinPrice()
 		if res == "Success" {
 			time.Sleep(6 * time.Minute)
 			log.Println("==========LastPrice==========")
