@@ -1,4 +1,4 @@
-package zec
+package ltc
 
 import (
 	s "github.com/GGBTC/explorer/service"
@@ -8,37 +8,32 @@ import (
 
 //TODO
 //进行并发设计
-func GenerateAddressTime() {
-	s.GetMongo(s.Mongourl)
-	Database := s.GlobalS.DB("ZEC")
-	BlockCollection := Database.C("blocks")
-	AddrCollection := Database.C("address")
-	var block s.Blocks
-	var addr s.Address
-	BlockCollection.Find(bson.M{}).Sort("-time").Limit(1).One(&block)
-	//根据BlockHeight 获取顺序正常和数量有限的交易列表
-	//根据列表循环更新账户
-	AddrCollection.Find(bson.M{}).Sort("-lastseen").Limit(1).One(&addr)
+func GetAddress(Tx *s.Tx, Database *mgo.Database) string {
+	if Tx != nil {
+		time := Tx.BlockTime
+		in := Tx.Vin
+		out := Tx.Vout
+		txid := Tx.Txid
+		addressIndex := mgo.Index{
+			Key:    []string{"address", "lastseen"},
+			Unique: false,
+		}
+		addressCollection := Database.C("address")
+		addressCollection.EnsureIndex(addressIndex)
+		for _, k := range in {
+			predata := VinInfo(k)
+			FinishAddress(time, predata, addressCollection)
+		}
+		for _, k := range out {
+			//fmt.Println(k)
+			predata1 := VoutInfo(k, txid)
+			FinishAddress(time, predata1, addressCollection)
+		}
+	}
+	return "Success"
+}
 
-}
-func GetAddress(time uint64, in []*s.UTXO, out []*s.UTXO, Database *mgo.Database) {
-	addressIndex := mgo.Index{
-		Key:    []string{"address", "lastseen"},
-		Unique: false,
-	}
-	addressCollection := Database.C("address")
-	addressCollection.EnsureIndex(addressIndex)
-	for _, k := range in {
-		predata := VinInfo(k)
-		FinishAddress(time, predata, addressCollection)
-	}
-	for _, k := range out {
-		//fmt.Println(k)
-		predata1 := VoutInfo(k)
-		FinishAddress(time, predata1, addressCollection)
-	}
-}
-func VinInfo(InUTXO *s.UTXO) *s.Address {
+func VinInfo(InUTXO *s.Vin) *s.Address {
 	if InUTXO == nil {
 		return nil
 	}
@@ -50,9 +45,9 @@ func VinInfo(InUTXO *s.UTXO) *s.Address {
 	Addre := new(s.Address)
 	Addre.Address = InUTXO.Address
 	Txi.Index = InUTXO.Index
-	Txi.Txid = InUTXO.Utxo
+	Txi.Txid = InUTXO.Hash
 	Txi.Value = InUTXO.Value
-	Txi.Currency = "ZEC"
+	Txi.Currency = "LTC"
 	InUTXO.Spent = "true"
 	Txi.Spent = "Ture"
 	Txis = append(Txis, Txi)
@@ -60,27 +55,23 @@ func VinInfo(InUTXO *s.UTXO) *s.Address {
 	return Addre
 }
 
-func VoutInfo(OutUTXO *s.UTXO) *s.Address {
-	//TODO
-	//尝试进行并发判断
-	//梳理逻辑，以删除第一个判断
+func VoutInfo(OutUTXO *s.VoutNew, txid string) *s.Address {
 	if OutUTXO == nil {
 		return nil
 	}
-	if OutUTXO.Address == "" {
+	if OutUTXO.Addr == "" {
 		return nil
 	}
 	var Txi s.Txs
 	var Txis []s.Txs
 	Addre := new(s.Address)
-	//fmt.Println(OutUTXO.Address, "1111111111111111111")
 	Txi.Index = OutUTXO.Index
-	Txi.Txid = OutUTXO.Utxo
+	Txi.Txid = txid
 	Txi.Value = OutUTXO.Value
-	Txi.Currency = "ZEC"
+	Txi.Currency = "LTC"
 	OutUTXO.Spent = "false"
 	Txi.Spent = "False"
-	Addre.Address = OutUTXO.Address
+	Addre.Address = OutUTXO.Addr
 	Txis = append(Txis, Txi)
 	Addre.Txs = Txis
 	return Addre
@@ -101,7 +92,6 @@ func FillParas(addreinfo *s.Address) *s.Address {
 	return addreinfo
 }
 
-//Not Found
 func CompleteAddress(Time uint64, addreinfo *s.Address) *s.Address {
 	addreinfo.FirstSeen = Time
 	addreinfo.LastSeen = Time
@@ -111,11 +101,11 @@ func CompleteAddress(Time uint64, addreinfo *s.Address) *s.Address {
 	}
 	return res
 }
+
 func UpdateAddress(Time uint64, olds s.Address, news *s.Address) *s.Address {
 	news.FirstSeen = olds.FirstSeen
 	news.LastSeen = Time
 	for _, k := range olds.Txs {
-		//	fmt.Println(k.Spent)
 		news.Txs = append(news.Txs, k)
 	}
 	res := FillParas(news)
@@ -128,6 +118,7 @@ func UpdateAddress(Time uint64, olds s.Address, news *s.Address) *s.Address {
 	return res
 
 }
+
 func FinishAddress(Time uint64, addressinfo *s.Address, collection *mgo.Collection) bool {
 	if addressinfo != nil {
 		var olds s.Address

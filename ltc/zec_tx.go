@@ -1,4 +1,4 @@
-package zec
+package ltc
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 
 func CatchUpTx() string {
 	s.GetMongo(mongourl)
-	Database := s.GlobalS.DB("ZEC")
+	Database := s.GlobalS.DB("LTC")
 	star, end := GenerateTime(Database)
 	if star != end {
 		log.Println("Start")
@@ -64,11 +64,16 @@ func GenerateTxArray(time uint64, Database *mgo.Database) []string {
 	return list
 }
 func BuildUTXO(tx *s.Tx, Database *mgo.Database) string {
+
 	if tx == nil {
 		return "Success"
 	}
+	UTXOIndex := mgo.Index{
+		Key:    []string{"utxo"},
+		Unique: false,
+	}
 	UtxoCollection := Database.C("utxos")
-
+	UtxoCollection.EnsureIndex(UTXOIndex)
 	vin := tx.Vin
 	vout := tx.Vout
 	var wg sync.WaitGroup
@@ -109,6 +114,7 @@ func BuildUTXO(tx *s.Tx, Database *mgo.Database) string {
 
 }
 func ProcessTx(txidArray []string, Database *mgo.Database) bool {
+	var wg sync.WaitGroup
 	TxCollection := Database.C("txs")
 	for _, k := range txidArray {
 		var q bson.M
@@ -116,10 +122,23 @@ func ProcessTx(txidArray []string, Database *mgo.Database) bool {
 		if res != nil {
 			result, _ := GetClearTx(k, TxCollection)
 			TxCollection.Insert(result)
-			resul := BuildUTXO(result, Database)
-			if resul == "Success" {
-				log.Println("Inserting Tx :", k)
-			}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				resul := BuildUTXO(result, Database)
+				if resul == "Success" {
+					log.Println("Inserting Tx :", k)
+				}
+			}()
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				resull := GetAddress(result, Database)
+				if resull == "Success" {
+					log.Println("Address Build Finish")
+				}
+			}()
+			wg.Wait()
 		}
 	}
 	return true
@@ -159,13 +178,13 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 				pval, _ := txijson.(map[string]interface{})["value"].(json.Number).Float64()
 				txi.Address = txijson.(map[string]interface{})["address"].(string)
 				txi.Value = service.FloatToUint(pval)
-				txi.Currency = "ZEC"
+				txi.Currency = "LTC"
 				txi.Spent = "true"
 			} else {
 				prevout, _ := GetVoutNewRPC(txi.Hash, txi.Index, TxCollection)
 				txi.Address = prevout.Addr
 				txi.Value = prevout.Value
-				txi.Currency = "ZEC"
+				txi.Currency = "LTC"
 				txi.Spent = "true"
 
 			}
@@ -177,7 +196,7 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 			//baseinfor = txi.Coinbase
 			txi.Sequence, _ = txijson.(map[string]interface{})["sequence"].(json.Number).Int64()
 			tx.Vin = append(tx.Vin, txi)
-			txi.Currency = "ZEC"
+			txi.Currency = "LTC"
 			txi.Spent = "true"
 			total_tx_in += uint64(txi.Value)
 		}
@@ -193,8 +212,8 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 			txodata, txoisinterface := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["addresses"].([]interface{})
 			if txoisinterface {
 				txo.Addr = txodata[0].(string)
-				txo.Currency = "ZEC"
-				tx.Type = "ZEC"
+				txo.Currency = "LTC"
+				tx.Type = "LTC"
 				txo.Spent = "false"
 
 			} else {
@@ -202,7 +221,7 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 			}
 		}
 		tx.Vout = append(tx.Vout, txo)
-		//if txo.Currency == "ZEC" {
+		//if txo.Currency == "LTC" {
 		total_tx_out += uint64(txo.Value)
 		//}
 	}

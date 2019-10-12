@@ -1,4 +1,4 @@
-package ltc
+package zec
 
 import (
 	"log"

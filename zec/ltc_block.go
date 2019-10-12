@@ -18,11 +18,11 @@ const (
 	URL       = s.LTCURL
 	GenesisTx = s.LTCGenesisTx
 	mongourl  = s.Mongourl
-	apikey    = s.ZECAPIKEY
+	apikey    = s.LTCAPIKEY
 )
 
-func GetZECCountRPC() int64 {
-	res, err := CallZECRPC(URL, "getblockcount", 1, []interface{}{})
+func GetltcCountRPC() int64 {
+	res, err := CallLTCRPC(URL, "getblockcount", 1, []interface{}{})
 	if err != nil {
 		fmt.Println("Error")
 	}
@@ -32,8 +32,8 @@ func GetZECCountRPC() int64 {
 	return count
 }
 
-func GetZECHashRPC(height int64) string {
-	res, err := CallZECRPC(URL, "getblockhash", 1, []interface{}{height})
+func GetltcHashRPC(height int64) string {
+	res, err := CallLTCRPC(URL, "getblockhash", 1, []interface{}{height})
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -43,23 +43,23 @@ func GetZECHashRPC(height int64) string {
 }
 
 func GetBlocks(hash string) s.Blocks {
-	res, err := CallZECRPC(URL, "getblock", 1, []interface{}{hash})
+	res, err := CallLTCRPC(URL, "getblock", 1, []interface{}{hash})
 	if err != nil {
 		fmt.Println("Error")
 	}
 	rawInfo := res["result"].(map[string]interface{})
 	//	fmt.Println(rawInfo)
 	data, _ := json.Marshal(rawInfo)
-	var ZECd s.Blocks
-	json.Unmarshal(data, &ZECd)
-	ZECd.NTx = len(ZECd.Tx)
+	var ltcd s.Blocks
+	json.Unmarshal(data, &ltcd)
+	ltcd.NTx = len(ltcd.Tx)
 	Difficulty, _ := rawInfo["difficulty"].(json.Number).Float64()
-	ZECd.Difficulty = uint64(Difficulty)
-	return ZECd
+	ltcd.Difficulty = uint64(Difficulty)
+	return ltcd
 
 }
 
-func CallZECRPC(address string, method string, id interface{}, params []interface{}) (map[string]interface{}, error) {
+func CallLTCRPC(address string, method string, id interface{}, params []interface{}) (map[string]interface{}, error) {
 	data, err := json.Marshal(map[string]interface{}{
 		"method": method,
 		"id":     id,
@@ -89,35 +89,30 @@ func CallZECRPC(address string, method string, id interface{}, params []interfac
 
 func CalaulateTime(blockCollection *mgo.Collection) (int64, int64) {
 	var target s.Blocks
-	blockCollection.Find(bson.M{}).Sort("height").Limit(1).One(&target)
-	//blockCollection.Remove(target)
+	blockCollection.Find(bson.M{}).Sort("-height").Limit(1).One(&target)
+	blockCollection.Remove(target)
 	startheight := int64(target.Height)
-	endheight := GetZECCountRPC()
+	endheight := GetltcCountRPC()
 	return startheight, endheight
 }
 
-func CatchUpBlocks() string {
+//10:50:18
+func CatchUpBlockss() string {
 	s.GetMongo(mongourl)
-	Database := s.GlobalS.DB("ZEC")
-	blockIndex := mgo.Index{
-		Key:    []string{"hash", "height", "time"},
-		Unique: false,
-	}
-
+	Database := s.GlobalS.DB("LTC")
 	blockCollection := Database.C("blocks")
-	blockCollection.EnsureIndex(blockIndex)
-	start, end := CalaulateTime(blockCollection)
-	//for i := 520000; i <= 520001; i++ {
-	if start != end {
-		blockCollection.Remove(bson.M{"height": start})
-		for i := start; i <= end; i++ {
-			hash := GetZECHashRPC(int64(i))
-			blocks := GetBlocks(hash)
-			log.Println("Process Block With Height: ", i, "; And Blocks Hash :", hash)
-			blockCollection.Insert(blocks)
+	//start, end := CalaulateTime(blockCollection)
+	for i := 520000; i <= 520001; i++ {
+		//for i := start; i <= end; i++ {
+		hash := GetltcHashRPC(int64(i))
+		blocks := GetBlocks(hash)
+		log.Println("Process Block With Height: ", i, "; And Blocks Hash :", hash)
+		blockCollection.Insert(blocks)
+		txArray := blocks.Tx
+		result := CatchUpTx(txArray, Database)
+		if result != true {
+			return "Failed"
 		}
-	} else {
-		return "Success"
 	}
 	return "Success"
 }

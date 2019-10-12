@@ -2,19 +2,21 @@ package main
 
 import (
 	"log"
+	"sync"
 	"time"
 
 	zec "github.com/GGBTC/explorer/zec"
 )
 
 func main() {
-	//var wg sync.WaitGroup
-	Tx()
-	//Block()
-	//wg.Add(1)
-
-	//wg.Wait()
-	//UTXO()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go Tx()
+	wg.Add(1)
+	go Price()
+	Block()
+	wg.Wait()
+	//Cop()
 
 }
 
@@ -35,6 +37,18 @@ func Tx() {
 		if res == "Success" {
 			time.Sleep(2 * time.Second)
 			log.Println("==========Transaction==========")
+			log.Println("============Finish=============")
+		}
+	}
+}
+
+func Price() {
+	for {
+		//	defer wg.Done()
+		res := zec.GetLastBitCoinPrice()
+		if res == "Success" {
+			time.Sleep(6 * time.Minute)
+			log.Println("==========LastPrice==========")
 			log.Println("============Finish=============")
 		}
 	}

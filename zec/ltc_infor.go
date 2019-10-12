@@ -60,7 +60,7 @@ func GetLastBitCoinPrice() string {
 	Info.MarketCap = MarketCap
 	Info.MarketAmount = Amou
 	s.GetMongo(mongourl)
-	Database := s.GlobalS.DB("ZEC")
+	Database := s.GlobalS.DB("LTC")
 	Height, Difficult := GetBlockInfo(Database)
 	Info.Height = Height
 	Info.Difficult = Difficult
