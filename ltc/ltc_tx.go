@@ -31,13 +31,18 @@ func CatchUpTx() string {
 //10:55:37
 func GenerateTime(Database *mgo.Database) (uint64, uint64) {
 	blockCollection := Database.C("blocks")
-	txIndex := mgo.Index{
-		Key:    []string{"txid", "blocktime"},
+	txIndex1 := mgo.Index{
+		Key:    []string{"txid"},
+		Unique: false,
+	}
+	txIndex2 := mgo.Index{
+		Key:    []string{"-blocktime"},
 		Unique: false,
 	}
 
 	TxCollection := Database.C("txs")
-	TxCollection.EnsureIndex(txIndex)
+	TxCollection.EnsureIndex(txIndex1)
+	TxCollection.EnsureIndex(txIndex2)
 	var target s.Blocks
 	var targettx s.Tx
 	var starttime uint64
@@ -148,7 +153,7 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 	if txid == GenesisTx {
 		return
 	}
-	res_tx, err := CallZECRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+	res_tx, err := CallLTCRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
@@ -257,7 +262,7 @@ func GetTxRPC(txid string) map[string]interface{} {
 	if txid == GenesisTx {
 		return nil
 	}
-	res_tx, err := CallZECRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+	res_tx, err := CallLTCRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}

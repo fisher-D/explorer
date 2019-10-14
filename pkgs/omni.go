@@ -22,11 +22,16 @@ func OmniProcesser(Omni string) (*OmniTx, error) {
 	} else {
 		tar.TxType = "Unknown"
 	}
-	if (Omni[22:24] == "1f") || (Omni[22:24] == "31") {
+	para := Omni[22:24]
+	switch para {
+	case "if":
 		tar.TokenName = "TetherUS"
-	} else {
+	case "31":
+		tar.TokenName = "TetherUS"
+	default:
 		tar.TokenName = "Unknown"
 	}
+
 	//int, err := strconv.Atoi(string)
 
 	Value16 := Omni[24:len(Omni)]
