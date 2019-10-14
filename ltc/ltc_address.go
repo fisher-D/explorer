@@ -15,11 +15,12 @@ func GetAddress(Tx *s.Tx, Database *mgo.Database) string {
 		out := Tx.Vout
 		txid := Tx.Txid
 		addressIndex := mgo.Index{
-			Key:    []string{"address", "lastseen"},
-			Unique: false,
+			Key:    []string{"address"},
+			Unique: true,
 		}
 		addressCollection := Database.C("address")
 		addressCollection.EnsureIndex(addressIndex)
+		//addressCollection.EnsureIndex(addressIndex2)
 		for _, k := range in {
 			predata := VinInfo(k)
 			FinishAddress(time, predata, addressCollection)
@@ -34,9 +35,6 @@ func GetAddress(Tx *s.Tx, Database *mgo.Database) string {
 }
 
 func VinInfo(InUTXO *s.Vin) *s.Address {
-	if InUTXO == nil {
-		return nil
-	}
 	if InUTXO.Address == "" {
 		return nil
 	}
@@ -56,9 +54,6 @@ func VinInfo(InUTXO *s.Vin) *s.Address {
 }
 
 func VoutInfo(OutUTXO *s.VoutNew, txid string) *s.Address {
-	if OutUTXO == nil {
-		return nil
-	}
 	if OutUTXO.Addr == "" {
 		return nil
 	}
@@ -105,6 +100,7 @@ func CompleteAddress(Time uint64, addreinfo *s.Address) *s.Address {
 func UpdateAddress(Time uint64, olds s.Address, news *s.Address) *s.Address {
 	news.FirstSeen = olds.FirstSeen
 	news.LastSeen = Time
+	//news Txs is not empty
 	for _, k := range olds.Txs {
 		news.Txs = append(news.Txs, k)
 	}
@@ -119,7 +115,7 @@ func UpdateAddress(Time uint64, olds s.Address, news *s.Address) *s.Address {
 
 }
 
-func FinishAddress(Time uint64, addressinfo *s.Address, collection *mgo.Collection) bool {
+func FinishAddress(Time uint64, addressinfo *s.Address, collection *mgo.Collection) {
 	if addressinfo != nil {
 		var olds s.Address
 		query := bson.M{"address": addressinfo.Address}
@@ -129,10 +125,10 @@ func FinishAddress(Time uint64, addressinfo *s.Address, collection *mgo.Collecti
 			collection.Insert(firstdata)
 		} else {
 			updateresult := UpdateAddress(Time, olds, addressinfo)
-			collection.Remove(olds)
+			collection.Remove(bson.M{"address": olds.Address})
 			collection.Insert(updateresult)
 		}
-		return true
+		//return true
 	}
-	return false
+	//return false
 }

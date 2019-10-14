@@ -99,11 +99,11 @@ func CatchUpBlocks() string {
 	//使用单一检索，以简便查询
 	blockIndex1 := mgo.Index{
 		Key:    []string{"hash"},
-		Unique: false,
+		Unique: true,
 	}
 	blockIndex2 := mgo.Index{
 		Key:    []string{"-height"},
-		Unique: false,
+		Unique: true,
 	}
 	blockIndex3 := mgo.Index{
 		Key:    []string{"-time"},

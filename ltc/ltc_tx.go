@@ -74,8 +74,8 @@ func BuildUTXO(tx *s.Tx, Database *mgo.Database) string {
 		return "Success"
 	}
 	UTXOIndex := mgo.Index{
-		Key:    []string{"utxo"},
-		Unique: false,
+		Key:    []string{"index", "utxo"},
+		Unique: true,
 	}
 	UtxoCollection := Database.C("utxos")
 	UtxoCollection.EnsureIndex(UTXOIndex)
@@ -85,31 +85,49 @@ func BuildUTXO(tx *s.Tx, Database *mgo.Database) string {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		vinlimit := make(chan bool, 10)
+		vinch := make(chan *s.Vin, len(vout))
 		for _, k := range vin {
 			if k.Address != "" {
-				Remove := new(s.UTXO)
-				Remove.Address = k.Address
-				Remove.Currency = k.Currency
-				Remove.Index = k.Index
-				Remove.Utxo = k.Hash
-				Remove.Value = k.Value
-				UtxoCollection.Remove(Remove)
+				vinch <- k
+				go func() {
+					vinlimit <- true
+					tar, ok := <-vinch
+					if ok {
+						index := tar.Index
+						utxo := tar.Hash
+						UtxoCollection.Remove(bson.M{"index": index, "utxo": utxo})
+					}
+					<-vinlimit
+				}()
 			}
 		}
+
 	}()
+
 	wg.Add(1)
 
 	go func() {
 		defer wg.Done()
+		voutlimit := make(chan bool, 10)
+		voutch := make(chan *s.VoutNew, len(vout))
 		for _, k := range vout {
 			if k.Addr != "" {
-				Insert := new(s.UTXO)
-				Insert.Address = k.Addr
-				Insert.Currency = k.Currency
-				Insert.Index = k.Index
-				Insert.Utxo = tx.Txid
-				Insert.Value = k.Value
-				UtxoCollection.Insert(Insert)
+				voutch <- k
+				go func() {
+					voutlimit <- true
+					tar, ok := <-voutch
+					if ok {
+						Insert := new(s.UTXO)
+						Insert.Address = tar.Addr
+						Insert.Currency = tar.Currency
+						Insert.Index = tar.Index
+						Insert.Utxo = tx.Txid
+						Insert.Value = tar.Value
+						UtxoCollection.Insert(Insert)
+					}
+					<-voutlimit
+				}()
 			}
 		}
 	}()
@@ -140,7 +158,7 @@ func ProcessTx(txidArray []string, Database *mgo.Database) bool {
 				defer wg.Done()
 				resull := GetAddress(result, Database)
 				if resull == "Success" {
-					log.Println("Address Build Finish")
+					log.Println("Build Address Information Included in The Tx Completed")
 				}
 			}()
 			wg.Wait()
@@ -251,7 +269,6 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32, TxCollection *mgo.Collection) 
 			txo = k
 			return txo, nil
 		}
-		return
 	}
 
 	return
