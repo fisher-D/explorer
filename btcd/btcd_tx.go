@@ -1,4 +1,4 @@
-package ltc
+package btcd
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 
 func CatchUpTx() string {
 	s.GetMongo(mongourl)
-	Database := s.GlobalS.DB("LTC")
+	Database := s.GlobalS.DB("BTCD")
 	star, end := GenerateTime(Database)
 	if star != end {
 		log.Println("Start")
@@ -172,7 +172,7 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 	if txid == GenesisTx {
 		return
 	}
-	res_tx, err := CallLTCRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+	res_tx, err := CallBTCDRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
@@ -186,9 +186,10 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 	tx.Version = uint32(Version)
 	total_tx_out := uint64(0)
 	total_tx_in := uint64(0)
-	//var baseinfor string
+	var baseinfor string
 	for _, txijson := range txjson["vin"].([]interface{}) {
 		_, coinbase := txijson.(map[string]interface{})["coinbase"]
+		//res := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["asm"].(string)
 		if !coinbase {
 			txi := new(service.Vin)
 			txi.Hash = txijson.(map[string]interface{})["txid"].(string)
@@ -202,13 +203,13 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 				pval, _ := txijson.(map[string]interface{})["value"].(json.Number).Float64()
 				txi.Address = txijson.(map[string]interface{})["address"].(string)
 				txi.Value = service.FloatToUint(pval)
-				txi.Currency = "LTC"
+				txi.Currency = "BTCD"
 				txi.Spent = "true"
 			} else {
 				prevout, _ := GetVoutNewRPC(txi.Hash, txi.Index, TxCollection)
 				txi.Address = prevout.Addr
 				txi.Value = prevout.Value
-				txi.Currency = "LTC"
+				txi.Currency = "BTCD"
 				txi.Spent = "true"
 			}
 			total_tx_in += uint64(txi.Value)
@@ -219,7 +220,7 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 			//baseinfor = txi.Coinbase
 			txi.Sequence, _ = txijson.(map[string]interface{})["sequence"].(json.Number).Int64()
 			tx.Vin = append(tx.Vin, txi)
-			txi.Currency = "LTC"
+			txi.Currency = "BTCD"
 			txi.Spent = "true"
 			total_tx_in += uint64(txi.Value)
 		}
@@ -235,23 +236,61 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 			txodata, txoisinterface := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["addresses"].([]interface{})
 			if txoisinterface {
 				txo.Addr = txodata[0].(string)
-				txo.Currency = "LTC"
-				tx.Type = "LTC"
+				txo.Currency = "BTCD"
+				tx.Type = "BTCD"
 				txo.Spent = "false"
 
 			} else {
 				txo.Addr = ""
 			}
+		} else {
+			res := txojson.(map[string]interface{})["scriptPubKey"].(map[string]interface{})["asm"].(string)
+			Omni, err := OmniProcesser(res)
+			if err != nil {
+				txo.Addr = "Unknown"
+				txo.Currency = "Not strandard Omni"
+				tx.Type = "Unknown"
+			} else {
+				//Functions to Identify the Address
+				txo.Addr = Omni.OP_RETURN
+				txo.Currency = Omni.TokenName
+				//txo.Index =
+				txo.Value = Omni.Value
+				baseinfor = "Omni"
+			}
 		}
 		tx.Vout = append(tx.Vout, txo)
-		//if txo.Currency == "LTC" {
-		total_tx_out += uint64(txo.Value)
-		//}
+		if txo.Currency == "BTCD" {
+			total_tx_out += uint64(txo.Value)
+		}
 	}
 
-	tx.Totalin = uint64(total_tx_in)
-	tx.Totalout = uint64(total_tx_out)
-	tx.Txid = txid
+	switch baseinfor {
+	case "Omni":
+		tx.Type = "USDT"
+		fee := total_tx_in - total_tx_out
+		tx.Totalin = total_tx_in
+		tx.Totalout = total_tx_out
+		tx.Fee = fee
+		tx.Txid = txid
+	case "Unknown":
+		tx.Type = "Unknown"
+		//tx.Totalout = total_tx_out
+		tx.Fee = uint64(0)
+		tx.Txid = txid
+	case "":
+		tx.Type = "BTC"
+		fee := total_tx_in - total_tx_out
+		tx.Totalin = total_tx_in
+		tx.Totalout = total_tx_out
+		tx.Fee = fee
+		tx.Txid = txid
+	default:
+		tx.Type = "CoinBase"
+		tx.Totalout = total_tx_out
+		tx.Fee = uint64(0)
+		tx.Txid = txid
+	}
 	return tx, nil
 }
 
@@ -279,7 +318,7 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32, TxCollection *mgo.Collection) 
 // 	if txid == GenesisTx {
 // 		return nil
 // 	}
-// 	res_tx, err := CallLTCRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
+// 	res_tx, err := CallBTCDRPC(URL, "getrawtransaction", 1, []interface{}{txid, 1})
 // 	if err != nil {
 // 		log.Fatalf("Err: %v", err)
 // 	}

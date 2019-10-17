@@ -166,7 +166,6 @@ func GetVoutNewRPC(tx_id string, txo_vout uint32) (txo *service.VoutNew, err err
 		log.Fatalf("Err: %v", err)
 	}
 	txjson := res_tx["result"].(map[string]interface{})
-
 	txojson := txjson["vout"].([]interface{})[txo_vout]
 	txo = new(service.VoutNew)
 	valtmp, _ := txojson.(map[string]interface{})["value"].(json.Number).Float64()
