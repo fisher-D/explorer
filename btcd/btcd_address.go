@@ -46,7 +46,7 @@ func VinInfo(InUTXO *s.Vin) *s.Address {
 	Txi.Txid = InUTXO.Hash
 	Txi.Value = InUTXO.Value
 	Txi.Currency = "BTCD"
-	InUTXO.Spent = "true"
+	InUTXO.Spent = "True"
 	Txi.Spent = "Ture"
 	Txis = append(Txis, Txi)
 	Addre.Txs = Txis
@@ -64,7 +64,7 @@ func VoutInfo(OutUTXO *s.VoutNew, txid string) *s.Address {
 	Txi.Txid = txid
 	Txi.Value = OutUTXO.Value
 	Txi.Currency = "BTCD"
-	OutUTXO.Spent = "false"
+	OutUTXO.Spent = "False"
 	Txi.Spent = "False"
 	Addre.Address = OutUTXO.Addr
 	Txis = append(Txis, Txi)
@@ -74,7 +74,7 @@ func VoutInfo(OutUTXO *s.VoutNew, txid string) *s.Address {
 
 func FillParas(addreinfo *s.Address) *s.Address {
 	for _, k := range addreinfo.Txs {
-		if k.Spent != "true" {
+		if k.Spent != "True" {
 			addreinfo.TotalRecCount++
 			addreinfo.TotalReceived = +k.Value
 		} else {

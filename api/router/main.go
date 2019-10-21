@@ -175,13 +175,13 @@ func GetAddressUnSpent(w http.ResponseWriter, req *http.Request) {
 	if coinName == "btc" {
 		mongo := getdata.Mongo{}
 		address := params["id"]
-		mongo.GetConnection("BTC", "utxo")
+		mongo.GetConnection("BTC", "utxos")
 		result := mongo.GetUnSpent(address)
 		json.NewEncoder(w).Encode(result)
 	} else if coinName == "ltc" {
 		mongo := getdata.Mongo{}
 		address := params["id"]
-		mongo.GetConnection("LTC", "utxo")
+		mongo.GetConnection("LTC", "utxos")
 		result := mongo.GetUnSpent(address)
 		json.NewEncoder(w).Encode(result)
 	}

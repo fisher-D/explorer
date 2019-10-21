@@ -204,13 +204,13 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 				txi.Address = txijson.(map[string]interface{})["address"].(string)
 				txi.Value = service.FloatToUint(pval)
 				txi.Currency = "BTCD"
-				txi.Spent = "true"
+				txi.Spent = "True"
 			} else {
 				prevout, _ := GetVoutNewRPC(txi.Hash, txi.Index, TxCollection)
 				txi.Address = prevout.Addr
 				txi.Value = prevout.Value
 				txi.Currency = "BTCD"
-				txi.Spent = "true"
+				txi.Spent = "True"
 			}
 			total_tx_in += uint64(txi.Value)
 			tx.Vin = append(tx.Vin, txi)
@@ -221,7 +221,7 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 			txi.Sequence, _ = txijson.(map[string]interface{})["sequence"].(json.Number).Int64()
 			tx.Vin = append(tx.Vin, txi)
 			txi.Currency = "BTCD"
-			txi.Spent = "true"
+			txi.Spent = "True"
 			total_tx_in += uint64(txi.Value)
 		}
 
@@ -238,7 +238,7 @@ func GetClearTx(txid string, TxCollection *mgo.Collection) (tx *service.Tx, err 
 				txo.Addr = txodata[0].(string)
 				txo.Currency = "BTCD"
 				tx.Type = "BTCD"
-				txo.Spent = "false"
+				txo.Spent = "False"
 
 			} else {
 				txo.Addr = ""
